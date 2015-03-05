@@ -1,29 +1,31 @@
 <html>
 <head>
-<script type="text/javascript" src="./designer.js"></script>
+  <script type="text/javascript" src="./designer.js"></script>
+  <link rel="stylesheet" type="text/css" href="../maze.css">
+  <meta charset='utf-8'>
 </head>
 <body>
+<div class="container">
+	<div class="panel">
+		<span id="buttons">
+			<span>
+				W: <input type='text' size='3' id='width' value='10'>
+				H: <input type='text' size='3' id='height' value='10'>
+			</span>
+			<a href="#" onclick='set_size()' class="button">Set Size</a>
+		</span>
+		<span id="buttons">
+			Main Cell Mouse Action:
+			<span>
+				<input type='radio' name='tool' id='t_start' onclick='set_tool(1)' checked> <label for='t_start'>Set Start</label>
+				<input type='radio' name='tool' id='t_finish' onclick='set_tool(2)'> <label for='t_finish'>Set Finish</label>
+			</span>
+		</span>
+	</div>
 
-<table border='0' cellspacing='0' cellpadding='0'>
-<tr>
-<td>
-W: <input type='text' size='3' id='width' value='10'><br />
-H: <input type='text' size='3' id='height' value='10'><br />
-<input type='button' value='Set Size' onclick='set_size()' />
-</td>
-<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-<td>
-Main Cell Mouse Action:<br />
-<input type='radio' name='tool' id='t_start' onclick='set_tool(1)' checked> <label for='t_start'>Set Start</label><br />
-<input type='radio' name='tool' id='t_finish' onclick='set_tool(2)'> <label for='t_finish'>Set Finish</label><br />
-</td>
-</tr>
-</table>
-
-<table border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
-<br />
-<textarea wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea>
-
+	<div><table style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
+	<textarea wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea></div>
+</div>
 <script>set_size()</script>
 </body>
 </html>
