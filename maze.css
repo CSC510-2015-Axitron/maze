@@ -131,3 +131,8 @@ span {
 	background-image: linear-gradient(to bottom, #482e22, #63402f);
 	filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#482e22, endColorstr=#63402f);
 }
+
+#maze_table {
+	border: 1px solid black;
+	background-color: #FFF;
+}
