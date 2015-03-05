@@ -15,7 +15,7 @@ currentMaze = -1;  //the order of maze in which they appear in the directory
 //
 mazeDirectory =
 {
-	'small': ['maze1_2x3','maze2_3x3','maze3_10x10','maze4_10x10'],
+	'small': ['maze1_2x3','maze2_3x3','maze3_10x10','maze4_10x10','maze5_8x5','maze6_10x5','maze7_4x7','maze8_10x10'],
 	'medium': [],
 	'large': [],
 	'huge': []
