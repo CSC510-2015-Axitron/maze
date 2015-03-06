@@ -66,7 +66,7 @@ function updateStatus(maze) {
 		{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
 		}
-		}, 500);
+		}, 100);
 	}
 
 	maze.userData.keepStep();
@@ -82,6 +82,7 @@ function updateStatus(maze) {
 function resetStatus() {
 	$("#dsp_steps").text(0);
 	$("#dsp_time").text("00:00");
+	$("#dsp_level").text(currentMaze);
 }
 
 // user data per level
