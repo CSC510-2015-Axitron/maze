@@ -1,6 +1,7 @@
 // mazeMenu test file for nodejs mocha and chai
-// use jsdom for browser simulation
-// Internal mock objects are creted to test mazeMenu
+// this file should be executed after test-mazeModel
+// mock objects are created for AMaze, jQuery, and Canvas Engine
+// expand document, window and $() to test css and other html components 
 
 var assert = require('chai').assert;
 //var jsdom = require('jsdom');
