@@ -387,3 +387,12 @@ $(function() {
 
 
 });
+
+//Check to see if we are in node or the browser.
+if (typeof exports !== 'undefined'){
+	module.exports.getNextMaze = getNextMaze;
+	module.exports.updateStatus = updateStatus;
+	module.exports.resetStatus = resetStatus;
+	module.exports.userData = userData;
+	module.exports.setGameCanvas = setGameCanvas;
+}
