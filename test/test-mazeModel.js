@@ -1,6 +1,9 @@
 //Chai assert api is here
 //http://chaijs.com/api/assert/
 //Could always switch to should or expect if necessary
+
+$ = require('jquery')(require("jsdom").jsdom().parentWindow);
+
 var assert = require('chai').assert;
 var mazeModel = require('./../mazeModel');
  
