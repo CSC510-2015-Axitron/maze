@@ -197,7 +197,7 @@ describe('Maze menu test', function() {
 			
 			}, 2000);
 		});
-		it ('shuld only check timer every 10 cycles', function() {
+		it ('should only check timer every 10 cycles', function() {
 
 			AMaze.model.userData.displayMinSec();
 			AMaze.model.userData.displayMinSec();
@@ -226,7 +226,7 @@ describe('Maze menu test', function() {
 
 			assert.equal(AMaze.model.userData.step, 2);
 		});
-		it ('shuld not exceed 999', function() {
+		it ('should not exceed 999', function() {
 
 			AMaze.model.userData.step = 999;
 			menu.updateStatus(AMaze.model);
@@ -238,7 +238,7 @@ describe('Maze menu test', function() {
 
 	describe('When player wins', function() {
 
-		it ('window should popu up', function() {
+		it ('window should pop up', function() {
 
 			AMaze.model.hasPlayerWon = function() {return 1;}
 
