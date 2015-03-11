@@ -256,6 +256,22 @@ describe('Maze menu test', function() {
 				assert.equal(AMaze.model.userData.getMinSec(), '00:02');
 			}, 2000);
 		});
+
+		it ('should update score', function() {
+
+			var testModel  = new AMaze.model.Maze();
+
+			testModel.hasPlayerWon = function() {return 1;}
+
+			testModel.userData = new menu.userData(Date.now());
+			testModel.gameData = menu.gameData;
+
+			currentMaze = 2;
+			testModel.userData.TimerOff();
+			menu.updateStatus(testModel);
+
+			assert.equal(testModel.gameData.getScore() > 0, true);
+		});
 	});
 
 	describe('Test canvas function', function() {

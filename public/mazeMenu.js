@@ -34,7 +34,7 @@ var gameData = new function() {
 	
 	// score formula 
 	this.getScore = function() {
-		var a = Math.round(50 * (1 + currentMaze) - currentStep - currentTime * 2);
+		var a = Math.round(50 * (1 + currentMaze * 0.6) - currentStep - currentTime * 3);
 		this.totalScore += ((a < 0)? 0:a);
 		return this.totalScore;
 	}
@@ -70,9 +70,8 @@ function getNextMaze() {
 //
 // Tasks should be done at each step
 // 1. update step counts
-// 2. time, maybe?
-// 3. check if player has won
-//
+// 2. check if player has won
+// 3. if play has won, display high score
 // Here parameter maze is the maze object created in setGameCanvas
 //
 function updateStatus(maze) {
@@ -85,7 +84,7 @@ function updateStatus(maze) {
 		if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
 		{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-			$("#dsp_score").text(gameData.getScore());
+			$("#dsp_score").text(maze.gameData.getScore());
 		}
 		}, 100);
 	}
@@ -345,6 +344,7 @@ function setGameCanvas(loaded) {
 
 				//piggyback on Amaze model
 				modelTest.userData = new userData(Date.now());
+				modelTest.gameData = gameData; //make gameData testable
 				resetStatus();
 
 				canvas.Input.keyUp(Input.Up, function(e) {
@@ -418,4 +418,5 @@ if (typeof exports !== 'undefined'){
 	module.exports.resetStatus = resetStatus;
 	module.exports.userData = userData;
 	module.exports.setGameCanvas = setGameCanvas;
+	module.exports.gameData = gameData;
 }
