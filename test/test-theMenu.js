@@ -108,6 +108,13 @@ CE.defines = function(name) {
 				func(a);
 			}
 		}
+
+		input.Sound = {
+			Device: "",
+			playLoop: function(a) {
+				input.Sound.Device = a;
+			}
+		}
 		
 		return input;
 	}
