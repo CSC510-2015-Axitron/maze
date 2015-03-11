@@ -21,6 +21,8 @@ mazeDirectory =
 	'huge': []
 }
 
+var musicOn = false;
+
 // store data per game!
 var gameData = new function() {
 	this.totalStep = 0;
@@ -182,6 +184,9 @@ function setGameCanvas(loaded) {
             		trail2: "images/trail_dot2.png",
             		trail3: "images/trail_dot3.png",
             		trail4: "images/trail_dot4.png"
+				},
+				sounds: {
+					theme1: "sound/Anguish.mp3"
 				}
 			},
 			ready: function(stage) {
@@ -341,6 +346,12 @@ function setGameCanvas(loaded) {
 				this.mazeRenderer.createTrailModel();
 
 				this.mazeRenderer.drawMaze();
+
+				//play music
+				if (!musicOn) {
+					musicOn = true;
+					canvas.Sound.playLoop("theme1");
+				}
 
 				//piggyback on Amaze model
 				modelTest.userData = new userData(Date.now());

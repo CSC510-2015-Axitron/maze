@@ -21,6 +21,8 @@ mazeDirectory =
 	'huge': []
 }
 
+var musicOn = false;
+
 // store data per game!
 var gameData = new function() {
 	this.totalStep = 0;
@@ -346,7 +348,10 @@ function setGameCanvas(loaded) {
 				this.mazeRenderer.drawMaze();
 
 				//play music
-				canvas.Sound.playLoop("theme1");
+				if (!musicOn) {
+					musicOn = true;
+					canvas.Sound.playLoop("theme1");
+				}
 
 				//piggyback on Amaze model
 				modelTest.userData = new userData(Date.now());
