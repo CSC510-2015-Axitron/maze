@@ -21,6 +21,26 @@ mazeDirectory =
 	'huge': []
 }
 
+// store data per game!
+var gameData = new function() {
+	this.totalStep = 0;
+	this.totalTime = 0;
+	this.totalScore = 0;
+	var currentStep;
+	var currentTime;
+
+	this.keepStep = function(a) {this.totalStep += (currentStep = a);}
+	this.keepTime = function(a) {this.totalTime += (currentTime = a);}
+	
+	// score formula 
+	this.getScore = function() {
+		var a = Math.round(50 * (1 + currentMaze) - currentStep - currentTime * 2);
+		this.totalScore += ((a < 0)? 0:a);
+		return this.totalScore;
+	}
+}
+
+
 //Enter current level and maze number
 //Return the next maze json file
 function getNextMaze() {
@@ -65,6 +85,7 @@ function updateStatus(maze) {
 		if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
 		{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
+			$("#dsp_score").text(gameData.getScore());
 		}
 		}, 100);
 	}
@@ -101,7 +122,7 @@ function userData(initTime){
 		    return s;
 		}
 
-        getTime = function() {
+        var getTime = function() {
                 return ((Date.now() - startTime)/1000);
         }
 
@@ -114,6 +135,8 @@ function userData(initTime){
 
         this.TimerOff = function() {
         	counter = -1;
+        	gameData.keepStep(this.step);
+        	gameData.keepTime(getTime());
         }
 
         this.TimerOn = function() {

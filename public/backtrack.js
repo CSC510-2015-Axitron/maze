@@ -195,7 +195,7 @@ backtrack.model = function (opts)
 		// Search node that is located at <x,y>
 		this.forwardSearch = function(node, x, y) {
 			if (node.pos[0] == x && node.pos[1] == y) return true;
-			else if (forwardTraverse(node, [x, y])) return true;
+			else if (this.forwardTraverse(node, [x, y])) return true;
 			else return false;
 		}
 
@@ -209,7 +209,7 @@ backtrack.model = function (opts)
 				if (child[i] != 0)
 				{
 					if (child[i].pos[0] == pos[0] && child[i].pos[1] == pos[1]) return true;
-					else if (forwardTraverse(node, pos)) return true;
+					else if (this.forwardTraverse(node, pos)) return true;
 				}
 			}
 			return false;
@@ -218,7 +218,7 @@ backtrack.model = function (opts)
 		// Search node that is located at <x, y>
 		this.backwardSearch = function(node, x, y) {
 			if (node.head != 0){
-				if (backwardTraverse(node.head, [x, y])) return true;
+				if (this.backwardTraverse(node.head, [x, y])) return true;
 				else return false;
 			}
 		}
@@ -229,7 +229,7 @@ backtrack.model = function (opts)
 				return true;
 			}
 			else if (node.head != 0) {
-				return backwardTraverse(node.head, pos);
+				return this.backwardTraverse(node.head, pos);
 			}
 			else return false;
 		}

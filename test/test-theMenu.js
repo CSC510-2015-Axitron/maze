@@ -217,7 +217,7 @@ describe('Maze menu test', function() {
 		});
 	});
 
-	describe('When proceed 2 sptes', function() {
+	describe('When proceed 2 steps', function() {
 		it ('steps should be 2', function() {
 
 			AMaze.model.hasPlayerWon = function() {return 0;}
