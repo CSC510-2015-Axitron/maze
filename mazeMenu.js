@@ -178,7 +178,7 @@ function setGameCanvas(loaded) {
 			materials: {
 				images: {
 					player: "images/knight.png",
-					tileset: "images/grass_tileset.png",
+					tileset: "images/grass_tileset_2x.png",
 
 					trail1: "images/trail_dot1.png",
             		trail2: "images/trail_dot2.png",
@@ -228,7 +228,7 @@ function setGameCanvas(loaded) {
 				var spritemap = {
 					image: "tileset",
 					size:[8,6],
-					tile:[32,32],
+					tile:[64,64],
 					reg:[0,0],
 					set:["none_0","n_0", "e_0", "ne_0", "s_0", "ns_0", "es_0", "nes_0",
 						 "none_1","n_1", "e_1", "ne_1", "s_1", "ns_1", "es_1", "nes_1",
@@ -292,7 +292,7 @@ function setGameCanvas(loaded) {
 				styleObj = {
 					'bg':'#17d540',
 					'spritemap':spritemap,
-					'cellSize':[32,32]
+					'cellSize':[64,64]
 				};
 
 				this.mazeRenderer = new AMaze.render.MazeRenderer({
