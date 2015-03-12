@@ -44,10 +44,27 @@ $ = function(obj) {
 	}
 	
 	if (typeof obj == 'string') {
-		return components;
+
+		if (obj.match(/^#.+/)) //check if obj is html components
+		{
+			components.click = function(a) {
+				a();
+			}
+			return components;
+		}
+		else
+			return components;
+	}
+	else if (typeof obj == 'function')
+	{
+		obj();
 	}
 	else
 	{
+		obj.on = function() {return obj;}
+		obj.scrollTop = function(a) {return obj;}
+		obj.scrollLeft = function(a) {return obj;}
+
 		return obj;
 	}
 }
@@ -110,9 +127,9 @@ CE.defines = function(name) {
 		}
 
 		input.Sound = {
-			Device: "",
+			file: "",
 			playLoop: function(a) {
-				input.Sound.Device = a;
+				input.Sound.file = a;
 			}
 		}
 		
@@ -142,8 +159,8 @@ describe('Maze menu test', function() {
 		it ('should have four sizes', function() {
 			assert.equal(Object.keys(mazeDirectory).length, 4);
 		});
-		it ('maze no. should be -1', function() {
-			assert.equal(currentMaze, -1);
+		it ('after callback maze no. should be 0', function() {
+			assert.equal(currentMaze, 0);
 		});
 	});
 	describe('When loading AMaze model', function() {
@@ -157,25 +174,25 @@ describe('Maze menu test', function() {
 	});
 	describe('Execute jQuery callback function', function() {
 
-		it ('maze no. should be 0', function() {
+		it ('maze no. should be 1', function() {
 
 			currentMazeFile =  menu.getNextMaze();
-			assert.equal(currentMaze, 0);
+			assert.equal(currentMaze, 1);
 		});
 
-		it ('should load first maze', function() {
+		it ('should load second maze file', function() {
 			var mazeKeyArray = Object.keys(mazeDirectory);
 			var mazeArray = mazeDirectory[mazeKeyArray[currentLevel]];
 			assert.equal(currentMazeFile, "./levels/"+mazeKeyArray[currentLevel]+"/"+mazeArray[currentMaze]+".json");
 		});
 
-		it ('should load second maze', function() {
+		it ('proceeding to next level should load third maze file', function() {
 
 			currentMazeFile = menu.getNextMaze();
 
 			var mazeKeyArray = Object.keys(mazeDirectory);
 			var mazeArray = mazeDirectory[mazeKeyArray[currentLevel]];
-			assert.equal(currentMazeFile, "./levels/"+mazeKeyArray[currentLevel]+"/"+mazeArray[1]+".json");
+			assert.equal(currentMazeFile, "./levels/"+mazeKeyArray[currentLevel]+"/"+mazeArray[2]+".json");
 		});
 
 		it ('should load each maze', function() {
@@ -281,7 +298,14 @@ describe('Maze menu test', function() {
 		});
 	});
 
-	describe('Test canvas function', function() {
+	describe('Before cavnas is ready', function() {
+
+		it ('music should not play', function() {
+			assert.equal(Input.Sound.file == '', true);
+		});
+	});
+
+	describe('When canvas is ready', function() {
 
 		it ('canvas scene should be ready', function() {
 
@@ -295,12 +319,17 @@ describe('Maze menu test', function() {
 			assert.equal(AMaze.model.hasPlayerWon(),true);
 		});
 
+		it ('music should play', function() {
+
+			assert.equal(Input.Sound.file == '', false);
+		});
+
 		it ('should process key strokes', function() {
 
 			var testModel;
 			menu.setGameCanvas(testModel = new AMaze.model.Maze());
 
-			testModel.hasPlayerWon = function() {return 1;}
+			testModel.hasPlayerWon = function() {return 0;}
 
 			//simulate key pressed
 			AMaze.model.N_CONST = 0;
@@ -343,7 +372,7 @@ describe('Maze menu test', function() {
 			var testModel;
 			menu.setGameCanvas(testModel = new AMaze.model.Maze());
 
-			testModel.hasPlayerWon = function() {return 1;}
+			testModel.hasPlayerWon = function() {return 0;}
 
 			var stage = {
 
