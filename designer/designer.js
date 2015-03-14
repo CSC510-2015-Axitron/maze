@@ -4,7 +4,7 @@ var maze;
 
 var start_cell, finish_cell;
 
-var canvas, canvas_cell_width, canvas_cell_height;
+var canvas, canvas_cell_width, canvas_cell_height, eventActivated = false;
 var lastX = -1, lastY = -1, lastBackground = -1;
 var mouseDownHook = false, canvas_map = [], mouseUpTime, mouseUpCell, mouseDblClickHook = false;
 
@@ -86,12 +86,10 @@ function set_size() {
 
 	//Debug
 	//console.log(canvas_cell_width, canvas_cell_height, canvas.offsetLeft, canvas.offsetTop);
-	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e)});
-	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e)});
-	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e)});
-	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
-
-	window.addEventListener('resize', align_canvas);
+	if (!eventActivated) {
+		add_events(); //should be invoked only once!
+		eventActivated = true;
+	}
 
 	start_cell = finish_cell = null;
 	update_maze_code();
@@ -202,6 +200,15 @@ function canvas_mouse_up(e) {
 
 function align_canvas() {
 	canvas.style.left = mtbl.offsetLeft; //make canvas align with table
+}
+
+function add_events() {
+	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e)});
+	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e)});
+	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e)});
+	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
+
+	window.addEventListener('resize', align_canvas);
 }
 
 //Performs the corresponding mouse action on a given table cell.
