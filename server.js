@@ -36,7 +36,10 @@ db.serialize(function() {
 
 var express = require('express');
 var restapi = express();
+var bodyParser = require('body-parser');
+restapi.use(bodyParser.json());
 
+restapi.set('json spaces', 4);
 //restapi.all('/play/*', requireAuthentication, loadUser);
 //restapi.all('/user/*', requireAuthentication, loadUser);
 
@@ -102,6 +105,16 @@ restapi.get("/categories", function(req, res) {
             res.status(500).json({"response":"Error occured in retrieving category information","error":err});
         }
     });
+});
+
+restapi.post("/login", function(req, res) {
+    if(req.body.login && req.body.pass)
+    {
+        
+    }
+    else
+    {
+    }
 });
 
 restapi.post('/data', function(req, res){
