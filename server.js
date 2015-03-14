@@ -30,16 +30,74 @@ db.serialize(function() {
         0, "Debug maze", false, 2, 2, "{}", 0);
     db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, isUserMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
         1, "Debug maze 2", false, 2, 2, "{}", 0);
+
+    //dummy users
+    db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 0, '', 'dummy1@dum.my');
+    db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 1, '', 'dummy2@dum.my');
 });
 
+var NodePbkdf2 = require('node-pbkdf2'),
+    hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 });
+var passport = require('passport'), LocalStrategy = require('passport-local').Strategy;
 
+function userByAttr(attribute, value, done) {
+    doneFunc = done;
+    var rowFunc = function(err, row) {
+        if(!err)
+            if(row)
+                doneFunc(null, row);
+            else
+                doneFunc(new Error('User with email '+email+' does not exist'));
+        else
+            doneFunc(null, null);
+    };
+    if(attribute === 'email')
+        db.get("SELECT id, password, email, token, tokenInvalidAt FROM user WHERE email = ?", [value], rowFunc(err, row));
+    else if(attribute === 'id')
+        db.get("SELECT id, password, email, token, tokenInvalidAt FROM user WHERE id = ?", [value], rowFunc(err, row));
+    else done(null, null);
+}
+
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    userByAttr('id', id, function(err, user) {
+        done(err, user);
+    });
+});
+
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+        findByAttr('email', username, function(err, user) {
+            if(err) return done(err);
+            if(!user) return done(null, false, {message:'Incorrect login'});
+            hasher(password, user.password, function(err, isCorrect) {
+                if(isCorrect)
+                    done(null, user);
+                else
+                    done(null, false, {message:'Incorrect login'});
+            });
+        });
+    }
+));
 
 var express = require('express');
 var restapi = express();
 var bodyParser = require('body-parser');
-restapi.use(bodyParser.json());
+var session = require('express-session');
 
+restapi.use(bodyParser.json());
 restapi.set('json spaces', 4);
+restapi.use(session({secret:'amazing mazes'}));
+restapi.use(passport.initialize());
+restapi.use(passport.session());
+
+restapi.all('/', function(req, res) {
+    var sess = req.session
+});
+
 //restapi.all('/play/*', requireAuthentication, loadUser);
 //restapi.all('/user/*', requireAuthentication, loadUser);
 
@@ -107,14 +165,24 @@ restapi.get("/categories", function(req, res) {
     });
 });
 
-restapi.post("/login", function(req, res) {
-    if(req.body.login && req.body.pass)
-    {
-        
-    }
-    else
-    {
-    }
+restapi.post('/login', function(req, res, next) {
+    passport.authenticate('local', function(err, user, info) {
+        if (err) { return next(err) }
+        if (!user) {
+            return res.status(401).json({"error":info.message});
+        }
+        req.logIn(user, function(err) {
+            if (err) { return next(err); }
+            return res.status(200).json({"response":true});
+        });
+    })(req, res, next);
+});
+
+restapi.get("/logout", function(req, res) {
+    req.session.destroy(function (err) {
+        if(err) res.status(500).json({"error":err});
+        else res.status(200).json({"response":true});
+    });
 });
 
 restapi.post('/data', function(req, res){
