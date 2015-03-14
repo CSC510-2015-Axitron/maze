@@ -82,7 +82,7 @@ function set_size() {
 	canvas_cell_height = mtbl.clientHeight/(h*2 - 1);
 	canvas.width = mtbl.clientWidth;
 	canvas.height = mtbl.clientHeight;
-	canvas.style.left = mtbl.offsetLeft; //make canvas sit on top of table
+	align_canvas();
 
 	//Debug
 	//console.log(canvas_cell_width, canvas_cell_height, canvas.offsetLeft, canvas.offsetTop);
@@ -90,6 +90,8 @@ function set_size() {
 	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e)});
 	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e)});
 	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
+
+	window.addEventListener('resize', align_canvas);
 
 	start_cell = finish_cell = null;
 	update_maze_code();
@@ -196,6 +198,10 @@ function canvas_mouse_up(e) {
 
 	lastBackground = lastX = lastY = -1;
 	//console.log("up");
+}
+
+function align_canvas() {
+	canvas.style.left = mtbl.offsetLeft; //make canvas align with table
 }
 
 //Performs the corresponding mouse action on a given table cell.
