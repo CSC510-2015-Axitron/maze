@@ -83,11 +83,13 @@ function set_size() {
 	canvas.width = mtbl.clientWidth;
 	canvas.height = mtbl.clientHeight;
 	canvas.style.left = mtbl.offsetLeft; //make canvas sit on top of table
-	console.log(canvas_cell_width, canvas_cell_height, canvas.offsetLeft, canvas.offsetTop);
+
+	//Debug
+	//console.log(canvas_cell_width, canvas_cell_height, canvas.offsetLeft, canvas.offsetTop);
 	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e)});
 	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e)});
 	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e)});
-	canvas.addEventListener("mouseout", canvas_mouse_out);
+	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
 
 	start_cell = finish_cell = null;
 	update_maze_code();
@@ -101,14 +103,14 @@ function set_tool(t) {
 function h_path_cell(x,y,x1,y1) {
 	maze[y][x] ^= 2;
 	maze[y][x+1] ^= 8;
-	lastBackground = canvas_map[y1][x1].style.background = maze[y][x] & 2 ? '#000000' : '#CCCCCC';
+	canvas_map[y1][x1].style.background = (lastBackground = (maze[y][x] & 2)) ? '#000000' : '#CCCCCC';
 	update_maze_code();
 }
 
 function v_path_cell(x,y,x1,y1) {
 	maze[y][x] ^= 4;
 	maze[y+1][x] ^= 1;
-	lastBackground = canvas_map[y1][x1].style.background = maze[y][x] & 4 ? '#000000' : '#CCCCCC';
+	canvas_map[y1][x1].style.background = (lastBackground = (maze[y][x] & 4)) ? '#000000' : '#CCCCCC';
 	update_maze_code();
 }
 
@@ -137,22 +139,22 @@ function canvas_mouse_XY(e) {
 		var x = Math.floor(canvasX/2);
 		var y = Math.floor(canvasY/2);
 		
-		//debug
+		//debug, booleans aren't numericals
 		//console.log(lastX, lastY);
 		if ((lastX % 2) && !(lastY % 2))
 		{
-			if (lastBackground != maze[y][x]) h_path_cell(x, y, canvasX, canvasY);
+			if (lastBackground == -1 || Boolean(lastBackground) != Boolean(maze[y][x] & 2)) h_path_cell(x, y, canvasX, canvasY);
 			//console.log("h_path "+ lastBackground);
 		}
 		else if (!(lastX % 2) && (lastY % 2))
 		{
-			if (lastBackground != maze[y][x]) v_path_cell(x, y, canvasX, canvasY);
+			if (lastBackground == -1 || Boolean(lastBackground) != Boolean(maze[y][x] & 4)) v_path_cell(x, y, canvasX, canvasY);
 			//console.log("v_path "+ lastBackground);
 		}
-		else if (!(lastX % 2) && !(lastY % 2))
-		{
+		//else if (!(lastX % 2) && !(lastY % 2))
+		//{
 			//console.log("main_cell");
-		}
+		//}
 	}
 }
 
