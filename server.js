@@ -1,6 +1,23 @@
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database('server.db');
+var sqlite3 = require('sqlite3').verbose(),
+    NodePbkdf2 = require('node-pbkdf2'),
+    uuid = require('node-uuid'),
+    express = require('express'),
+    bodyParser = require('body-parser'),
+    db = new sqlite3.Database('server.db'),
+    hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 }),
+    restapi = express();
 
+//{token:{userid:(id), validUntil:(date)}}
+var tokens = {};
+
+setInterval(function(){
+    var now = new Date();
+    Object.keys(tokens).forEach(function(key){
+        if(tokens[key].validUntil < now) delete tokens[key];
+    });
+}, 1000*60*2);
+
+//DB initial setup
 db.serialize(function() {
     db.run("CREATE TABLE IF NOT EXISTS user (id INTEGER NOT NULL, password TEXT NOT NULL, email TEXT NOT NULL, "
           +"CONSTRAINT pk_user PRIMARY KEY (id) ON CONFLICT ABORT)");
@@ -25,7 +42,7 @@ db.serialize(function() {
     db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 200,    "Large Mazes (20-30)");
     db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 300,    "Huge Mazes (30+)");
 
-    //debug
+    //dummy mazes
     db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, isUserMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
         0, "Debug maze", false, 2, 2, "{}", 0);
     db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, isUserMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -40,8 +57,6 @@ db.serialize(function() {
         'dummy2@dum.my');//testpassword27
 });
 
-var NodePbkdf2 = require('node-pbkdf2'),
-    hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 });
 
 function userByAttr(attribute, value, done) {
     doneFunc = done;
@@ -61,17 +76,10 @@ function userByAttr(attribute, value, done) {
     else done(null, null);
 }
 
-var uuid = require('node-uuid');
 
-
-//{token:{userid:(id), validUntil:(date)}}
-var tokens = {};
-
-
-//req.body.token is where a login token will both be returned if logging in or
-//stored if being used
+//req.headers.authorization is where a login token will be stored if being used
 function auth(req, res, next) {
-    if(req.headers.authorization && 
+    if(req.headers.authorization &&
         tokens[req.headers.authorization] &&
         tokens[req.headers.authorization].validUntil > new Date()
     )
@@ -86,68 +94,42 @@ function auth(req, res, next) {
     }
 }
 
-setInterval(function(){
-    var now = new Date();
-    Object.keys(tokens).forEach(function(key){
-        if(tokens[key].validUntil < now) delete tokens[key];
-    });
-}, 1000*60*2);
-
 function login(req, res) {
     if(req.headers.authorization && tokens[req.headers.authorization])
     {
         if(tokens[req.headers.authorization].validUntil > new Date())
-        {
             return  res.status(403).json({"response":"already authorized"});
-        }
-        else
-        {
-            delete tokens[req.headers.authorization];
-        }
+        else delete tokens[req.headers.authorization];
     }
-    if(req.body.email && req.body.password)
-    {
-        userByAttr('email', req.body.email, function(err, user) {
-            if(err) return res.status(500).json({"response":"error occured"});
-            hasher.checkPassword(req.body.password, user.password, function(err, passCorrect) {
-                if(err) return res.status(500).json({"response":"error occurred"});
-                if(passCorrect)
-                {
-                    var token = uuid.v4(), dateExpire = new Date();
-                    tokens[token] = {"userid":user.id, "validUntil":(dateExpire.setMinutes(dateExpire.getMinutes() + 30))};
-                    res.status(200).json({"token":token});
-                }
-                else
-                {
-                    res.status(401).json({"response":"invalid login credentials"});
-                }
-            });
-        });
-    }
-    else
-    {
-        return res.status(401).json({"response":"invalid login credentials"});
-    }
+    if(!(req.body.email && req.body.password)) return res.status(401).json({"response":"invalid login credentials"});
+
+	userByAttr('email', req.body.email, function(err, user) {
+		if(err) return res.status(500).json({"response":"error occured"});
+		hasher.checkPassword(req.body.password, user.password, function(err, passCorrect) {
+			if(err) return res.status(500).json({"response":"error occurred"});
+			if(passCorrect)
+			{
+				var token = uuid.v4(), dateExpire = new Date();
+				tokens[token] = {"userid":user.id, "validUntil":(dateExpire.setMinutes(dateExpire.getMinutes() + 30))};
+				res.status(200).json({"token":token});
+			}
+			else res.status(401).json({"response":"invalid login credentials"});
+		});
+	});
 }
 
 function logout(req, res) {
-    if(req.headers.authorization && tokens[req.headers.authorization])
-    {
-        delete tokens[req.headers.authorization];
-        res.status(200).json({"response":"logged out"});
-    }
-    else
-    {
-        res.status(401).json({"response":"not logged in"});
-    }
-}
+    if(!(req.headers.authorization && tokens[req.headers.authorization])) return res.status(401).json({"response":"not logged in"});
 
-var express = require('express');
-var restapi = express();
-var bodyParser = require('body-parser');
+	delete tokens[req.headers.authorization];
+	res.status(200).json({"response":"logged out"});
+}
 
 restapi.use(bodyParser.json());
 restapi.set('json spaces', 4);
+
+
+//routes
 
 restapi.all('/keepalive', auth, function(req, res) {
     res.status(200).json({"response":true});
@@ -163,64 +145,43 @@ restapi.all('/user/:user', auth, function(req, res) {
 restapi.get('/maze/:mazeno', function(req, res){
     db.get("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
         [req.params.mazeno], function(err, row){
-        if(!err)
-            if(row && row.mazeno != null)
-                res.status(200).json(row);
-            else
-                res.status(404).json({"response":"maze not found","query":req.params.mazeno});
-        else
-            res.status(500).json({"response":"Error occurred"});
+        if(err) return res.status(500).json({"response":"Error occurred"});
+		if(!(row && row.mazeno != null)) return res.status(404).json({"response":"maze not found","query":req.params.mazeno});
+		res.status(200).json(row);
     });
 });
 
 restapi.get("/mazes/:category", function(req,res){
     db.get("SELECT id, name FROM mazeCategory WHERE id = ?", [req.params.category], function(err, row) {
-        if(!err)
+        if(err) return res.status(500).json({"response":"Error occurred in retrieving category information","error":err});
+        if(!row) return res.status(404).json({"response":"category not found", "query":req.params.category});
+
+        var rowBack = row;
+        db.all("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
+            [req.params.category], function(err, rows)
         {
-            if(row)
+            if(err) return res.status(500).json({"response":"Error occurred in finding mazes for category","error":err});
+            var response = {"category":rowBack.id,"categoryName":rowBack.name,"mazes":[]};
+            if(rows)
             {
-                var rowBack = row;
-                db.all("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
-                    [req.params.category], function(err, rows){
-                    if(!err)
-                    {
-                        var response = {"category":rowBack.id,"categoryName":rowBack.name,"mazes":[]};
-                        if(rows)
-                        {
-                            rows.forEach(function(item) {
-                                response.mazes[item.mazeno] = {"mazeno":item.mazeno, "displayName":item.displayName};
-                            });
-                        }
-                        res.status(200).json(response);
-                    }
-                    else
-                        res.status(500).json({"response":"Error occurred in finding mazes for category","error":err});
+                rows.forEach(function(item) {
+                    response.mazes[item.mazeno] = {"mazeno":item.mazeno, "displayName":item.displayName};
                 });
             }
-            else
-            {
-                res.status(404).json({"response":"category not found", "query":req.params.category});
-            }
-        }
-        else
-            res.status(500).json({"response":"Error occurred in retrieving category information","error":err});
+            res.status(200).json(response);
+        });
     });
 });
 
 restapi.get("/categories", function(req, res) {
     db.all("SELECT id, name FROM mazeCategory", function(err, rows) {
-        if(!err)
-        {
-            var response = [];
-            rows.forEach(function(item) {
-                response.push({"id":item.id,"name":item.name});
-            });
-            res.status(200).json(response);
-        }
-        else
-        {
-            res.status(500).json({"response":"Error occured in retrieving category information","error":err});
-        }
+        if(err) return res.status(500).json({"response":"Error occured in retrieving category information","error":err});
+
+		var response = [];
+		rows.forEach(function(item) {
+			response.push({"id":item.id,"name":item.name});
+		});
+		res.status(200).json(response);
     });
 });
 
@@ -233,4 +194,4 @@ restapi.all("/", function(req, res) {
 });
 
 
-restapi.listen(3000); 
+restapi.listen(3000);
