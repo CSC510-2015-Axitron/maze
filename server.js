@@ -1,3 +1,59 @@
+/*
+
+documentation!
+when routes require auth, they expect a valid (not timed out) token gotten from /login in the HTTP header authorization
+using CURL, this can be expressed with -H "authorization:(token)"
+route : requirements; action, response(s)
+
+gets:
+/keepalive : auth'd; refreshes token validity to 30 minutes from now, error if token invalid or true if successful
+
+/user/:user : auth'd; returns user id and email, error if token invalid or user not the same user, returns values if successful
+
+/played/:user : none; returns user's best times and steps for all mazes they have completed, error if db error,
+    values if successful
+
+/played/:user/:category : none; returns user's best times and steps for all mazes they have completed in the given category,
+    same as above
+
+/top10/:mazeno : none; returns top 10 shortest completion times for a given maze, error if db error, values if successful
+
+/maze/:mazeno : none; returns the maze data for a given maze, error if db error, values if successful
+
+/mazes : none; returns count of mazes in the db, error if db error, value if successful
+
+/mazes/:category : none; returns the category details, mazenumbers, and maze names for all mazes in a category, error if db error
+    or category not valid, values if successful
+
+/categories : none; returns details of all categories, error if db error, values if successful
+
+/logout : auth'd; logs the user out if logged in, error if not logged in, confirmation if logged out
+
+posts:
+/keepalive : auth'd; same as get
+
+/play/:mazeno/:user : auth'd; submits a completion time/steps for the given maze number and user, error if token invalid or
+    user doesn't match or a confirmation if successful, data format is {time:(time in ms),steps:(steps)}
+
+/user/:user : auth'd; submits a user edit request, users can only edit their email and password, and no confirmation is
+    required nor asked, error if db error or neither value was edited or duplicate email, confirmation is successful,
+    data format is {email:(email),password:(new password)}, both fields are optional but at least one must be present
+
+/register : none; submits a user registration request, error if db error or duplicate email, otherwise confirmation if registered,
+    data format is {email:(email),password:(password)}
+
+/maze : auth'd; submits a new maze request, error if maze is incorrectly formatted (with an explanation why) or db error,
+    confirmation if successful, data format is:
+        {name:(name)(,category:(category)),maze:{height:(height),width:(width),board:[[0,0,...],[],...[]]}}
+    board must be a rectangular 2d array with #width inner arrays of length #height
+
+/maze/:mazeno : auth'd; submits a maze edit request, error if maze is incorrectly formatted or db error or not owner,
+    confirmation if successful, data format is same as /maze
+
+/login : none; submits a login request, error if db error or incorrect credentials, login token if successful
+
+*/
+
 var sqlite3 = require('sqlite3').verbose(),
     NodePbkdf2 = require('node-pbkdf2'),
     uuid = require('node-uuid'),
@@ -9,7 +65,8 @@ var sqlite3 = require('sqlite3').verbose(),
 
 //{token:{userid:(id), validUntil:(date)}}
 var tokens = {},
-    port = process.env.PORT || 8080;
+    port = process.env.PORT || 8080,
+    debug = true;
 
 setInterval(function(){
     var now = new Date();
@@ -26,10 +83,11 @@ db.serialize(function() {
     db.run("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER NOT NULL, name TEXT NOT NULL, "
           +"CONSTRAINT pk_mazeCat PRIMARY KEY (id) ON CONFLICT ABORT)");
 
-    db.run("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER NOT NULL, displayName TEXT NOT NULL, isUserMaze BOOLEAN, height INTEGER NOT NULL, width INTEGER NOT NULL, "
+    db.run("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER NOT NULL, displayName TEXT NOT NULL, userForMaze INTEGER, height INTEGER NOT NULL, width INTEGER NOT NULL, "
           +"mazeJSON TEXT NOT NULL, category INTEGER DEFAULT NULL, "
           +"CONSTRAINT pk_maze PRIMARY KEY (mazeno) ON CONFLICT ABORT, "
-          +"CONSTRAINT fk_maze FOREIGN KEY (category) REFERENCES mazeCategory (id) ON UPDATE CASCADE ON DELETE SET NULL)");
+          +"CONSTRAINT fk_maze_category FOREIGN KEY (category) REFERENCES mazeCategory (id) ON UPDATE CASCADE ON DELETE SET NULL,"
+          +"CONSTRAINT fk_maze_user FOREIGN KEY (userForMaze) REFERENCES user(id) ON UPDATE CASCADE ON DELETE SET NULL)");
 
     db.run("CREATE TABLE IF NOT EXISTS play (mazeno INTEGER, userID INTEGER, bestTime INTEGER, stepsForBestTime INTEGER, "
           +"CONSTRAINT pk_play PRIMARY KEY (mazeno, userID) ON CONFLICT REPLACE, "
@@ -42,20 +100,23 @@ db.serialize(function() {
     db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 100,    "Medium Mazes (10-20)");
     db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 200,    "Large Mazes (20-30)");
     db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 300,    "Huge Mazes (30+)");
+    
+    if(debug)
+    {
+        //dummy mazes
+        db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            0, "Debug maze", null, 2, 2, "{}", 0);
+        db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            1, "Debug maze 2", null, 2, 2, "{}", 0);
 
-    //dummy mazes
-    db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, isUserMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        0, "Debug maze", false, 2, 2, "{}", 0);
-    db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, isUserMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        1, "Debug maze 2", false, 2, 2, "{}", 0);
-
-    //dummy users
-    db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 0,
-        'pec3ZNq6/AnleyBwy3Ft::wYjmgHHjB4zJDYHiH1jnTX7YtQCIq86PgQvfzrsagsnyAk5jKprTsIS4Os3IzGFqhKFqeaH3tkUXSJh3::60::10000',
-        'dummy1@dum.my');//testpassword1
-    db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 1,
-        'LJf57nNfbkdcdgWzEqIe::HbrEUuOKIg1TzoWnZBdYBlUy1NqPr+YfL59NLCd7lSksyodThL8xoHN7GdLg6qdQwZ6YtNBcHrRfQ8Os::60::10000',
-        'dummy2@dum.my');//testpassword27
+        //dummy users
+        db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 0,
+            'pec3ZNq6/AnleyBwy3Ft::wYjmgHHjB4zJDYHiH1jnTX7YtQCIq86PgQvfzrsagsnyAk5jKprTsIS4Os3IzGFqhKFqeaH3tkUXSJh3::60::10000',
+            'dummy1@dum.my');//testpassword1
+        db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 1,
+            'LJf57nNfbkdcdgWzEqIe::HbrEUuOKIg1TzoWnZBdYBlUy1NqPr+YfL59NLCd7lSksyodThL8xoHN7GdLg6qdQwZ6YtNBcHrRfQ8Os::60::10000',
+            'dummy2@dum.my');//testpassword27
+    }
 });
 
 
@@ -214,6 +275,8 @@ restapi.post('/user/:user', function(req, res){
         runUpdate = function(){
             db.run("UPDATE user SET email = ?, password = ? WHERE id = ?", [newEmail, newPass, req.params.user],
                 function(err) {
+                    if(err.code && err.code === 'SQLITE_CONSTRAINT')
+                        return res.status(400).json({"response":"duplicate email address"})
                     if(err) return res.status(500).json({"response":"Error occurred"});
                     
                     res.status(200).json({"response":"user updated"});
@@ -266,7 +329,6 @@ restapi.get('/played/:user/:category', function(req, res){
     db.all("SELECT play.mazeno, userID, bestTime, stepsForBestTime FROM play, maze WHERE "
         +"play.userID = ? AND maze.mazeno = play.mazeno AND maze.category = ?",
         [req.params.user, req.params.category], function(err, rows) {
-        if(err) console.log(err);
         if(err) return res.status(500).json({"response":"Error occurred"});
 
         var response = {"user":req.params.user,"category":req.params.category,"played":[]};
@@ -291,12 +353,85 @@ restapi.get('/top10/:mazeno', function(req,res){
     });
 });
 
+//returnFunc(valid?, error)
+function checkMaze(json, returnFunc){
+    if(!(json.maze && json.name))
+        return returnFunc(false, "missing maze or name");
+
+    var maze = json.maze;
+    if(!(maze.width && maze.height && maze.start && maze.end && maze.board))
+        return returnFunc(false, "missing width, height, start, end, or board");
+
+    var lengthsOk = true;
+    for(var i = 0; i < maze.board.length; i++) {lengthsOk = lengthsOk && maze.board[i].length === maze.height}
+    if(!(maze.board.length == maze.width && lengthsOk))
+        return returnFunc(false, "board not rectangular");
+
+    if(!(maze.start[0] >= 0 && maze.start[0] < maze.width && maze.start[1] >= 0 && maze.start[1] < maze.height))
+        return returnFunc(false, "start not inside board");
+
+    if(!(maze.end[0] >= 0 && maze.end[0] < maze.width && maze.end[1] >= 0 && maze.end[1] < maze.height))
+        return returnFunc(false, "end not inside board");
+    
+    returnFunc(true);
+}
+
+restapi.post('/maze', auth, function(req, res){
+    checkMaze(req.body, function(valid, err) {
+        if(!valid) return res.status(400).json({"response":"invalid syntax","reason":err});
+        db.run("INSERT INTO maze (displayName, userForMaze, height, width, mazeJSON, category) VALUES "
+              +"($name, $user, $height, $width, $mazeJSON, $category)",
+            {"$name":req.body.name,"$user":tokens[req.headers.authorization].userid,"$height":req.body.maze.height,
+                "$width":req.body.maze.width,"$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category},
+        function(err){
+            if(err) return res.status(500).json({"response":"Error occurred"});
+            if(this.lastID) return res.status(200).json({"mazeno":this.lastID});
+            return res.status(500).json({"response":"Error occurred"});
+        });
+    });
+});
+
+//editing an old maze (that the user owns)
+restapi.post('/maze/:mazeno', auth, function(req, res){
+    checkMaze(req.body, function(valid, err){
+        if(!valid) return res.status(400).json({"response":"invalid syntax","reason":err});
+        db.get("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
+            [req.params.mazeno], function(err, row){
+            if(err) return res.status(500).json({"response":"Error occurred"});
+            
+            if(!row) return res.status(404).json({"response":"maze not found","mazeno":req.params.mazeno});
+            
+            if(tokens[req.headers.authorization].userid !== row.userForMaze)
+                return res.status(403).json({"response":"not authorized"});
+
+            db.run("UPDATE maze SET displayName = $name, height = $height, width = $width, mazeJSON = $mazeJSON, "
+                  +"category = $category WHERE mazeno = $mazeno",
+                {"$name":req.body.name,"$height":req.body.maze.height,"$width":req.body.maze.width,
+                    "$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category,"$mazeno":req.params.mazeno},
+            function(err){
+                if(err) return res.status(500).json({"response":"Error occurred"});
+                if(this.changes > 0) return res.status(200).json({"response":"maze updated"});
+                return res.status(500).json({"response":"Error occurred"});
+            });
+        });
+    });
+});
+
 restapi.get('/maze/:mazeno', function(req, res){
-    db.get("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
+    db.get("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
         [req.params.mazeno], function(err, row){
         if(err) return res.status(500).json({"response":"Error occurred"});
 		if(!(row && row.mazeno != null)) return res.status(404).json({"response":"maze not found","query":req.params.mazeno});
 		res.status(200).json(row);
+    });
+});
+
+restapi.get("/mazes", function(req, res){
+    db.get("SELECT count(*) as numMazes from maze", function(err, row) {
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        if(!row) return res.status(500).json({"response":"Error occurred"});
+
+        res.status(200).json({"mazes":row.numMazes});
     });
 });
 
@@ -306,7 +441,7 @@ restapi.get("/mazes/:category", function(req,res){
         if(!row) return res.status(404).json({"response":"category not found", "query":req.params.category});
 
         var rowBack = row;
-        db.all("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
+        db.all("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
             [req.params.category], function(err, rows)
         {
             if(err) return res.status(500).json({"response":"Error occurred in finding mazes for category","error":err});
