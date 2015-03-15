@@ -175,7 +175,7 @@ function userData(initTime){
 var mouseWorkEngine = function(canvas) {
 
 	var theMazeModel;
-	var threshold = 10; // threshold size (px), lower for higher sensitivity & higher errors!
+	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
 	var interval = 800; //shortest movement interval (ms)! 
 
 	var mouseDownHook = false, mouseDblClickHook = false, handler;
@@ -201,22 +201,18 @@ var mouseWorkEngine = function(canvas) {
 		switch(a) {
 			case 2:
 				if (flag = theMazeModel.movePlayer(AMaze.model.E_CONST)) updateStatus(theMazeModel);
-				else lastX = currX;
 				break;
 
 			case 4:
 				if (flag = theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
-				else lastX = currX;
 				break;
 			
 			case 3:
 				if (flag = theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
-				else lastY = currY;
 				break;
 		
 			case 1:
 				if (flag = theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
-				else lastY = currY;
 				break;
 		}
 
@@ -243,28 +239,38 @@ var mouseWorkEngine = function(canvas) {
 			lastTime = Date.now();
 
 			if(x > threshold || y > threshold)
-			{	console.log(x,y);
+			{
 
 				//not allow diagonal movement, recalibrate mouse center
 				if (x > y) {
 					offsetY = 0;
-					lastY = currY;
 					if (offsetX > 0) currMove = 2; else currMove = 4; 
 				}
 				else {
 					offsetX = 0;
-					lastX = currX;
 					if (offsetY > 0) currMove = 3; else currMove = 1;
 				}
-
+				
+				lastX = currX;
+				lastY = currY;
+				
 				//trigger movement if dir changes
 				if (currMove != lastMove) {
 
-					if (moveMaze(currMove)) lastMove = currMove; //ignore unsuccessful maze move
+					clearInterval(handler);
+					handler = 0;
 
+					if (moveMaze(currMove)) {
+						lastMove = currMove; //register dir only maze move is successful
+
+						handler = setInterval(function() { //allow momentum
+							if (!moveMaze(currMove)) {
+								clearInterval(handler);
+								handler = 0;
+							}
+						}, interval); //avoid overloading!
+					}
 				}
-				
-				if (!handler) handler = setInterval(function() {moveMaze();}, interval); //avoid overloading!
 			}
 		}
 	}
