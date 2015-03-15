@@ -192,26 +192,35 @@ var mouseWorkEngine = function(canvas) {
 		theMazeModel = mazeModel;
 	}
 
-	function moveMaze() {
+	function moveMaze(a) {
 		//console.log(offsetX, offsetY);
 
-		//recalibrate mouse center
-		if (offsetX > 0) {
-			if (theMazeModel.movePlayer(AMaze.model.E_CONST)) updateStatus(theMazeModel);
-			else lastX = currX;
+		var flag = true;
+
+		//recalibrate mouse center if move fail
+		switch(a) {
+			case 2:
+				if (flag = theMazeModel.movePlayer(AMaze.model.E_CONST)) updateStatus(theMazeModel);
+				else lastX = currX;
+				break;
+
+			case 4:
+				if (flag = theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
+				else lastX = currX;
+				break;
+			
+			case 3:
+				if (flag = theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
+				else lastY = currY;
+				break;
+		
+			case 1:
+				if (flag = theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
+				else lastY = currY;
+				break;
 		}
-		else if (offsetX < 0) {
-			if (theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
-			else lastX = currX;
-		}
-		else if (offsetY > 0) {
-			if (theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
-			else lastY = currY;
-		}
-		else if (offsetY < 0) {
-			if (theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
-			else lastY = currY;
-		}
+
+		return flag;
 
 	}
 
@@ -224,7 +233,7 @@ var mouseWorkEngine = function(canvas) {
 
 	function canvas_mouse_move(e) {
 
-		// acquire mouseXY per 1/10 to reduce error
+		// acquire mouseXY each 0.1 s to reduce error
 		if (mouseDownHook && Date.now() - lastTime > 100) {
 			offsetX = (currX = get_mouse_x(e)) - lastX;
 			offsetY = (currY = get_mouse_y(e)) - lastY;
@@ -234,7 +243,7 @@ var mouseWorkEngine = function(canvas) {
 			lastTime = Date.now();
 
 			if(x > threshold || y > threshold)
-			{console.log(x,y);
+			{	console.log(x,y);
 
 				//not allow diagonal movement, recalibrate mouse center
 				if (x > y) {
@@ -244,14 +253,15 @@ var mouseWorkEngine = function(canvas) {
 				}
 				else {
 					offsetX = 0;
-					lastX = get_mouse_x(e);
-					if (offsetY > 0) currMove = 4; else currMove = 1;
+					lastX = currX;
+					if (offsetY > 0) currMove = 3; else currMove = 1;
 				}
 
 				//trigger movement if dir changes
 				if (currMove != lastMove) {
-					lastMove = currMove;
-					moveMaze();
+
+					if (moveMaze(currMove)) lastMove = currMove; //ignore unsuccessful maze move
+
 				}
 				
 				if (!handler) handler = setInterval(function() {moveMaze();}, interval); //avoid overloading!
