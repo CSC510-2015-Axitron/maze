@@ -135,12 +135,60 @@ restapi.all('/keepalive', auth, function(req, res) {
     res.status(200).json({"response":true});
 });
 
-restapi.all('/play/:mazeno/:user', auth, function(req, res) {
-    res.status(200).json({"action":"play","maze":req.params.mazeno,"user":req.params.user});
+restapi.get('/play/:mazeno/:user', function(req, res) {
+    db.get("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
+        [req.params.mazeno, req.params.user], function(err, row)
+    {
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        if(!row) return res.status(404).json({"response":"user has not completed level",
+            "user":req.params.user,"mazeno":req.params.mazeno});
+        
+        res.status(200).json({"mazeno":req.params.mazeno,"user":req.params.user,"bestTime":row.bestTime,"unit":"ms",
+            "stepsForBestTime":row.stepsForBestTime});
+    });
 });
-restapi.all('/user/:user', auth, function(req, res) {
-    res.status(200).json({"action":"user","user":req.params.user});
+
+restapi.all('/play/:mazeno/:user', auth);
+
+restapi.post('/play/:mazeno/:user', function(req, res) {
+    if(!(req.params.user == tokens[req.headers.authorization].userid)) return res.status(403).json({"response":"not authorized"});
+    if(!(req.body.time && req.body.steps)) return res.status(400).json({"response":"invalid syntax, missing parameters"});
+    
+    db.get("SELECT mazeno FROM maze WHERE mazeno = ?", [req.params.mazeno], function(err, row){
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        if(!row) return res.status(404).json({"response":"maze does not exist","mazeno":req.params.mazeno});
+
+        db.get("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
+            [req.params.mazeno, req.params.user], function(err, row)
+        {
+            if(err) return res.status(500).json({"response":"Error occurred"});
+            if(!row)
+            {
+                db.run("INSERT INTO play (mazeno, userID, bestTime, stepsForBestTime) VALUES (?, ?, ?, ?)",
+                    [req.params.mazeno, req.params.user, req.body.time, req.body.steps], function(err){
+                    if(err) return res.status(500).json({"response":"Error occurred"});
+                    
+                    res.status(200).json({"response":"new best time entered"});
+                });
+            }
+            else
+            {
+                if(row.bestTime < req.body.time) return res.status(200).json({"response":"time not better",
+                    "bestTime":row.bestTime,"stepsForBestTime":row.stepsForBestTime});
+
+                db.run("UPDATE play SET bestTime = ?, stepsForBestTime = ? WHERE mazeno = ? AND userID = ?",
+                    [req.body.time, req.body.steps, req.params.mazeno, req.params.user], function(err) {
+                    if(err) return res.status(500).json({"response":"Error occurred"});
+                    
+                    res.status(200).json({"response":"best time updated"});
+                });
+            }
+        });
+    });
 });
+
+restapi.all('/user/:user', auth);
+
 
 restapi.get('/maze/:mazeno', function(req, res){
     db.get("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
@@ -193,14 +241,5 @@ restapi.all("/", function(req, res) {
     res.status(404).json({"response":"not found"});
 });
 
-var port = process.env.PORT || 8080;
 
-restapi.listen(port, function() {
-    console.log('Our app is running on http://localhost:' + port);
-});
-
-
-
-
-
-//restapi.listen(3000);
+restapi.listen(3000);
