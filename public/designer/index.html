@@ -15,7 +15,7 @@
 			<a href="#" onclick='set_size()' class="button">Set Size</a>
 		</span>
 		<span id="buttons">
-			Main Cell Mouse Action:
+			Double Click Mouse Action:
 			<span>
 				<input type='radio' name='tool' id='t_start' onclick='set_tool(1)' checked> <label for='t_start'>Set Start</label>
 				<input type='radio' name='tool' id='t_finish' onclick='set_tool(2)'> <label for='t_finish'>Set Finish</label>
@@ -23,8 +23,11 @@
 		</span>
 	</div>
 
-	<div><table style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
-	<textarea wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea></div>
+	<div>
+		<canvas id="maze_canvas" width=0 height=0 class="real" style="background-color: transparent;"></canvas>
+		<table style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
+		<textarea wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea>
+	</div>
 </div>
 <script>set_size()</script>
 </body>
