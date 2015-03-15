@@ -149,6 +149,10 @@ var bodyParser = require('body-parser');
 restapi.use(bodyParser.json());
 restapi.set('json spaces', 4);
 
+restapi.all('/keepalive', auth, function(req, res) {
+    res.status(200).json({"response":true});
+});
+
 restapi.all('/play/:mazeno/:user', auth, function(req, res) {
     res.status(200).json({"action":"play","maze":req.params.mazeno,"user":req.params.user});
 });
