@@ -21,6 +21,7 @@ mazeDirectory =
 	'huge': []
 }
 
+var mouseAction = {};
 var musicOn = false;
 
 // store data per game!
@@ -33,8 +34,8 @@ var gameData = new function() {
 
 	this.keepStep = function(a) {this.totalStep += (currentStep = a);}
 	this.keepTime = function(a) {this.totalTime += (currentTime = a);}
-	
-	// score formula 
+
+	// score formula
 	this.getScore = function() {
 		var a = Math.round(50 * (1 + currentMaze * 0.6) - currentStep - currentTime * 3);
 		this.totalScore += ((a < 0)? 0:a);
@@ -165,6 +166,137 @@ function userData(initTime){
         }
 }
 
+//
+// MouseWork engine, based on HTML5 not Canvas Engine.
+// 1. Instantiate it before use!
+// 2. Send mazeModel via setMazeModel()
+// 3. Use your mouse like the joystick!
+//
+var mouseWorkEngine = function(canvas) {
+
+	var theMazeModel;
+	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
+	var interval = 800; //shortest movement interval (ms)! 
+
+	var mouseDownHook = false, mouseDblClickHook = false, handler;
+	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;
+	var mouseDblClickHook, mouseUpTime; //variable for double click
+
+	//object constructor! Don't overload the event listeners!
+	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e);});
+	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e);});
+	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e);});
+	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
+
+	this.setMazeModel = function(mazeModel) {
+		theMazeModel = mazeModel;
+	}
+
+	function moveMaze(a) {
+		//console.log(offsetX, offsetY);
+
+		var flag = true;
+
+		//recalibrate mouse center if move fail
+		switch(a) {
+			case 2:
+				if (flag = theMazeModel.movePlayer(AMaze.model.E_CONST)) updateStatus(theMazeModel);
+				break;
+
+			case 4:
+				if (flag = theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
+				break;
+			
+			case 3:
+				if (flag = theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
+				break;
+		
+			case 1:
+				if (flag = theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
+				break;
+		}
+
+		return flag;
+
+	}
+
+	function canvas_mouse_down(e) {
+		//console.log("down");
+		mouseDownHook = true;
+		lastX = get_mouse_x(e);
+		lastY = get_mouse_y(e);
+	}
+
+	function canvas_mouse_move(e) {
+
+		// acquire mouseXY each 0.1 s to reduce error
+		if (mouseDownHook && Date.now() - lastTime > 100) {
+			offsetX = (currX = get_mouse_x(e)) - lastX;
+			offsetY = (currY = get_mouse_y(e)) - lastY;
+			var x = Math.abs(offsetX); 
+			var y = Math.abs(offsetY);
+			var currMove;
+			lastTime = Date.now();
+
+			if(x > threshold || y > threshold)
+			{
+
+				//not allow diagonal movement, recalibrate mouse center
+				if (x > y) {
+					offsetY = 0;
+					if (offsetX > 0) currMove = 2; else currMove = 4; 
+				}
+				else {
+					offsetX = 0;
+					if (offsetY > 0) currMove = 3; else currMove = 1;
+				}
+				
+				lastX = currX;
+				lastY = currY;
+				
+				//trigger movement if dir changes
+				if (currMove != lastMove) {
+
+					clearInterval(handler);
+					handler = 0;
+
+					if (moveMaze(currMove)) {
+						lastMove = currMove; //register dir only maze move is successful
+
+						handler = setInterval(function() { //allow momentum
+							if (!moveMaze(currMove)) {
+								clearInterval(handler);
+								handler = 0;
+							}
+						}, interval); //avoid overloading!
+					}
+				}
+			}
+		}
+	}
+
+	function canvas_mouse_out(e) {
+		//console.log("out");
+		mouseDownHook = false;
+		cleanInterval(handler);
+		handler = 0;
+		lastTime = 0;
+		lastMove = 0;
+	}
+
+	function canvas_mouse_up(e) {
+		//console.log("up");
+		mouseDownHook = false;
+		clearInterval(handler);
+		handler = 0;
+		lastTime = 0;
+		lastMove = 0;
+	}
+
+	function get_mouse_x(e) {return Math.floor(e.clientX - canvas.offsetLeft);}
+	function get_mouse_y(e) {return Math.floor(e.clientY - canvas.offsetTop);}
+}
+
 // callback function for loading the game canvas & spritemap
 function setGameCanvas(loaded) {
 
@@ -178,7 +310,7 @@ function setGameCanvas(loaded) {
 			materials: {
 				images: {
 					player: "images/knight.png",
-					tileset: "images/dungeon_tiles_compact_and_varied.png",
+					tileset: "images/grass_tileset_2x.png",
 
 					trail1: "images/trail_dot1.png",
             		trail2: "images/trail_dot2.png",
@@ -227,110 +359,72 @@ function setGameCanvas(loaded) {
 
 				var spritemap = {
 					image: "tileset",
-					size:[21,5],
-					tile:[16,16],
+					size:[8,6],
+					tile:[64,64],
 					reg:[0,0],
-					set:["g_flat_corner_nw","g_flat_n_1","g_flat_n_2","g_flat_n_3","g_flat_corner_ne","g_isth_corner_nw","g_isth_flat_ew","g_isth_corner_ne","g_flat_shd_ne", "g_stair1_shd",     "g_stair1",         "g_stair2",       "w_flat_corner_nw","w_flat_n",       "w_flat_corner_ne","w_flat_icorner_nw","w_flat_icorner_ne", "w_isth_jut_n", "w_isth_corner_nw", "w_isth_flat_ew","w_isth_corner_ne",
-						 "g_flat_w_1",		"g_flat_1",	 "g_flat_2",  "g_flat_3",  "g_flat_e_1",      "g_isth_flat_ns",  "blank",         "g_isth_flat_ns",  "g_flat_shd_e",  "g_flat_icorner_nw","g_flat_icorner_ne","g_stair2_shd",   "w_flat_w",        "w_flat",         "w_flat_e",        "w_flat_icorner_sw","w_flat_icorner_se", "w_isth_jut_s", "w_isth_flat_ns",   "w_isth_island", "w_isth_flat_ns",
-						 "g_flat_w_2",		"g_flat_4",	 "g_flat_5",  "g_flat_6",  "g_flat_e_2",	  "g_isth_corner_sw","g_isth_flat_ew","g_isth_corner_ne","g_flat_shd_se", "g_flat_icorner_sw","g_flat_icorner_se","shd",            "w_flat_corner_sw","w_flat_s",       "w_flat_corner_se","w_riv_waterfall_s","w_riv_waterfall_ew","w_riv_flat_ns","w_isth_corner_sw", "w_isth_flat_ew","w_isth_corner_se",
-						 "g_flat_w_3",		"g_flat_7",	 "g_flat_8",  "g_flat_9",  "g_flat_e_3",	  "g_isth_jut_n",    "g_isth_jut_w",  "g_isth_jut_e",    "g_door_open",   "g_door_wood",      "g_door_gate",      "w_riv_corner_nw","w_riv_flat_ew",   "w_riv_corner_ne","w_riv_corner_sw", "w_riv_flat_ew",    "w_riv_corner_se",   "g_wall_base",  "g_wall_continuing","blank",         "blank",
-						 "g_flat_corner_sw","g_flat_s_1","g_flat_s_2","g_flat_s_3","g_flat_corner_se","g_isth_jut_s",    "g_fall_lg",     "g_isth_island",   "w_riv_open_1",  "w_riv_open_2",     "w_riv_open_gate",  "w_riv_end_n",    "w_riv_end_s",     "w_riv_end_w",    "w_riv_end_e",     "w_isth_jut_w",     "w_isth_jut_e",      "blank",        "g_fall_sm",        "blank",         "blank"],
+					set:["none_0","n_0", "e_0", "ne_0", "s_0", "ns_0", "es_0", "nes_0",
+						 "none_1","n_1", "e_1", "ne_1", "s_1", "ns_1", "es_1", "nes_1",
+						 "none_2","n_2", "e_2", "ne_2", "s_2", "ns_2", "es_2", "nes_2",
+						 "w_0",   "nw_0","ew_0","new_0","sw_0","nsw_0","esw_0","nesw_0",
+						 "w_1",   "nw_1","ew_1","new_1","sw_1","nsw_1","esw_1","nesw_1",
+						 "w_2",   "nw_2","ew_2","new_2","sw_2","nsw_2","esw_2","nesw_2"],
 					cells:[
 						//0: none
-						[	{x:16,y:16, tiles:["g_flat_corner_nw"]},{x:32,y:16, tiles:["g_flat_corner_ne"]},
-							{x:16,y:32, tiles:["g_flat_corner_sw"]},{x:32,y:32, tiles:["g_flat_corner_se"]},
-							{x:16,y:48, tiles:["g_fall_lg"]},       {x:32,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["none_0","none_1","none_2"]}
 						],
 						//1: n
-						[	{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:16, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:16, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:32, tiles:["g_flat_corner_sw"]},                    {x:32,y:32, tiles:["g_flat_corner_se"]},
-							{x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["n_0","n_1","n_2"]}
 						],
 						//2: e
-						[	{x:16,y:16, tiles:["g_flat_corner_nw"]},{x:32,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x:16,y:32, tiles:["g_flat_corner_sw"]},{x:32,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x:16,y:48, tiles:["g_fall_lg"]},       {x:32,y:48, tiles:["g_fall_lg"]},                           {x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["e_0","e_1","e_2"]}
 						],
 						//3: n | e
-						[	{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:16, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:16, tiles:["g_flat_icorner_sw"]},                   {x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x:16,y:32, tiles:["g_flat_corner_sw"]},                    {x:32,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]},                           {x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["ne_0","ne_1","ne_2"]}
 						],
 						//4: s
-						[	{x:16,y:16, tiles:["g_flat_corner_nw"]},                    {x:32,y:16, tiles:["g_flat_corner_ne"]},
-							{x:16,y:32, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:32, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]}
+						[	{x:0,y:0, tiles:["s_0","s_1","s_2"]}
 						],
 						//5: n | s
-						[	{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:16, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:16, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:32, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:32, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]}
+						[	{x:0,y:0, tiles:["ns_0","ns_1","ns_2"]}
 						],
 						//6: e | s
-						[	{x:16,y:16, tiles:["g_flat_corner_nw"]},                    {x:32,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x:16,y:32, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:32, tiles:["g_flat_icorner_nw"]},                   {x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},{x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["es_0","es_1","es_2"]}
 						],
 						//7: n | e | s
-						[	{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x:16,y:16, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:16, tiles:["g_flat_icorner_sw"]},                   {x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x:16,y:32, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:32, tiles:["g_flat_icorner_nw"]},                   {x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},{x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["nes_0","nes_1","nes_2"]}
 						],
 						//8: w
-						[	{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:32,y:16, tiles:["g_flat_corner_ne"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:32,y:32, tiles:["g_flat_corner_se"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["w_0","w_1","w_2"]}
 						],
 						//9: n | w
-						[	                                                            {x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_icorner_se"]},                   {x:32,y:16, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:32,y:32, tiles:["g_flat_corner_se"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["nw_0","nw_1","nw_2"]}
 						],
 						//10: e | w
-						[	{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:32,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:32,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]},                           {x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["ew_0","ew_1","ew_2"]}
 						],
 						//11: n | e | w
-						[																{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_icorner_se"]},                   {x:32,y:16, tiles:["g_flat_icorner_sw"]},                   {x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:32,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_fall_lg"]},                           {x:32,y:48, tiles:["g_fall_lg"]},                           {x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["new_0","new_1","new_2"]}
 						],
 						//12: s | w
-						[	{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:32,y:16, tiles:["g_flat_corner_ne"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_icorner_ne"]},                   {x:32,y:32, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]}
+						[	{x:0,y:0, tiles:["sw_0","sw_1","sw_2"]}
 						],
 						//13: n | s | w
-						[																{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_icorner_se"]},					{x:32,y:16, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_icorner_ne"]},					{x:32,y:32, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},							{x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]}
+						[	{x:0,y:0, tiles:["nsw_0","nsw_1","nsw_2"]}
 						],
 						//14: e | s | w
-						[	{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:32,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_icorner_ne"]},                   {x:32,y:32, tiles:["g_flat_icorner_nw"]},                   {x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},{x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["esw_0","esw_1","esw_2"]}
 						],
 						//15: n | e | s | w
-						[																{x:16,y: 0, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y: 0, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},
-							{x: 0,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},{x:16,y:16, tiles:["g_flat_icorner_se"]},                   {x:32,y:16, tiles:["g_flat_icorner_sw"]},                   {x:48,y:16, tiles:["g_flat_n_1","g_flat_n_2","g_flat_n_3"]},
-							{x: 0,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},{x:16,y:32, tiles:["g_flat_icorner_ne"]},                   {x:32,y:32, tiles:["g_flat_icorner_nw"]},                   {x:48,y:32, tiles:["g_flat_s_1","g_flat_s_2","g_flat_s_3"]},
-							{x: 0,y:48, tiles:["g_fall_lg"]},                           {x:16,y:48, tiles:["g_flat_w_1","g_flat_w_2","g_flat_w_3"]},{x:32,y:48, tiles:["g_flat_e_1","g_flat_e_2","g_flat_e_3"]},{x:48,y:48, tiles:["g_fall_lg"]}
+						[	{x:0,y:0, tiles:["nesw_0","nesw_1","nesw_2"]}
 						]
 					],
 					entrances:this.cells,
 					exits:this.cells
 				},
 				styleObj = {
-					'bg':'#15111b',
-					'spritemap':spritemap
+					'bg':'#17d540',
+					'spritemap':spritemap,
+					'cellSize':[64,64]
 				};
 
 				this.mazeRenderer = new AMaze.render.MazeRenderer({
@@ -352,6 +446,9 @@ function setGameCanvas(loaded) {
 					musicOn = true;
 					canvas.Sound.playLoop("theme1");
 				}
+
+				//set mouse action
+				mouseAction.setMazeModel(modelTest);
 
 				//piggyback on Amaze model
 				modelTest.userData = new userData(Date.now());
@@ -387,6 +484,7 @@ function setGameCanvas(loaded) {
 
 $(function() {
 
+	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
 	currentMazeFile = getNextMaze();
 
 	//not testing the model here, assume it works
