@@ -2,12 +2,13 @@ language: node_js
 node_js:
 - '0.10'
 deploy:
-  provider: divshot
-  environment: development
-  on: master
-  skip_cleanup: true
+  provider: heroku
   api_key:
-    secure: TubQ+cT2yT4X7hrRA9+xd2wFMAooMikwOJ4LSaiXc2zi0E9HzLB/iL7rl31bQ8gbN7c8z2Ps8vgOxJfmYllABDCAUbf75yyx/Ek89vACQOaO1AiMUwyn+slDMsC3sAt7eW/jT8eoflHyb6XizM6KvEDlcs/+M96he01luKOxkyw=
+    secure: Bn9D95ynvBt200S4ZxH6ktWZQ84PUO4lbAD6l6+LH7KKOKUtiSTR22ySlBDZfsfwk5uXZehQYGQ19whOON3rxEGc4GtKrLnd69hNkWfvhW1yDAMDaGG8sV5lLa6b4CMmnkF+SvchGl3GGD0tQmufKEM+L58U5rQBKV/EFDe+vfA=
+  app:
+    master: axemaze
+    dbdev: axemaze-db
 branches:
   only:
   - master
+  - dbdev
