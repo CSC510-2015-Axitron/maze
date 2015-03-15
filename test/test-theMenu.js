@@ -15,7 +15,8 @@ var assert = require('chai').assert;
 //document mock object
 document = {
 	width: function() {return 640;},
-	height: function() {return 400;}
+	height: function() {return 400;},
+	getElementById: function () {return {addEventListener: function() {}};}
 };
 
 //window mock object
