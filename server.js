@@ -66,9 +66,9 @@ function userByAttr(attribute, value, done) {
             if(row)
                 doneFunc(null, row);
             else
-                doneFunc(new Error('User with identifier '+value+' does not exist'));
+                doneFunc({"error":"user does not exist","errcode":1});//dummy error code, we don't really use them anywhere else
         else
-            doneFunc(null, null);
+            doneFunc(err, null);
     };
     if(attribute === 'email')
         db.get("SELECT id, password, email FROM user WHERE email = ?", [value], rowFunc);
@@ -105,7 +105,11 @@ function login(req, res) {
     if(!(req.body.email && req.body.password)) return res.status(401).json({"response":"invalid login credentials"});
 
 	userByAttr('email', req.body.email, function(err, user) {
-		if(err) return res.status(500).json({"response":"error occured"});
+		if(err)
+                    if(err.errcode && err.errcode === 1)
+                        return res.status(404).json({"response":"user does not exist"});
+                    else
+                        return res.status(500).json({"response":"error occured"});
 		hasher.checkPassword(req.body.password, user.password, function(err, passCorrect) {
 			if(err) return res.status(500).json({"response":"error occurred"});
 			if(passCorrect)
@@ -252,6 +256,36 @@ restapi.get('/played/:user', function(req, res){
         if(rows) rows.forEach(function(item){
             response.played[item.mazeno] = {"mazeno":item.mazeno,"user":item.userID,
                 "bestTime":item.bestTime,"stepsForBestTime":item.stepsForBestTime};
+        });
+        res.status(200).json(response);
+    });
+});
+
+//get the records for a user in a category
+restapi.get('/played/:user/:category', function(req, res){
+    db.all("SELECT play.mazeno, userID, bestTime, stepsForBestTime FROM play, maze WHERE "
+        +"play.userID = ? AND maze.mazeno = play.mazeno AND maze.category = ?",
+        [req.params.user, req.params.category], function(err, rows) {
+        if(err) console.log(err);
+        if(err) return res.status(500).json({"response":"Error occurred"});
+
+        var response = {"user":req.params.user,"category":req.params.category,"played":[]};
+        if(rows) rows.forEach(function(item) {
+            response.played.push({"mazeno":item.mazeno,"user":item.userID,"bestTime":item.bestTime,
+                "stepsForBestTime":item.stepsForBestTime});
+        });
+        res.status(200).json(response);
+    });
+});
+
+restapi.get('/top10/:mazeno', function(req,res){
+    db.all("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? ORDER BY bestTime ASC LIMIT 0,10",
+        [req.params.mazeno], function(err, rows) {
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        var response = {"maze":req.params.mazeno,"bestTimes":[]};
+        if(rows) rows.forEach(function(item){
+            response.bestTimes.push({"mazeno":item.mazeno,"userID":item.userID,"bestTime":item.bestTime,
+                "stepsForBestTime":item.stepsForBestTime});
         });
         res.status(200).json(response);
     });
