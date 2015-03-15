@@ -78,7 +78,7 @@ function auth(req, res, next) {
     {
         var now = new Date();
         tokens[req.headers.authorization].validUntil = now.setMinutes(now.getMinutes() + 30);
-        next(req, res);
+        next();
     }
     else
     {
@@ -108,10 +108,9 @@ function login(req, res) {
     if(req.body.email && req.body.password)
     {
         userByAttr('email', req.body.email, function(err, user) {
-            if(err) return res.status(500).json({"response":"user error occured"});
-            console.log(user);
+            if(err) return res.status(500).json({"response":"error occured"});
             hasher.checkPassword(req.body.password, user.password, function(err, passCorrect) {
-                if(err) return res.status(500).json({"response":"checkpass error occurred","error":err});
+                if(err) return res.status(500).json({"response":"error occurred"});
                 if(passCorrect)
                 {
                     var token = uuid.v4(), dateExpire = new Date();
@@ -150,8 +149,12 @@ var bodyParser = require('body-parser');
 restapi.use(bodyParser.json());
 restapi.set('json spaces', 4);
 
-//restapi.all('/play/*', requireAuthentication, loadUser);
-//restapi.all('/user/*', requireAuthentication, loadUser);
+restapi.all('/play/:mazeno/:user', auth, function(req, res) {
+    res.status(200).json({"action":"play","maze":req.params.mazeno,"user":req.params.user});
+});
+restapi.all('/user/:user', auth, function(req, res) {
+    res.status(200).json({"action":"user","user":req.params.user});
+});
 
 restapi.get('/maze/:mazeno', function(req, res){
     db.get("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
