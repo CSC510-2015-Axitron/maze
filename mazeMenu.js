@@ -21,6 +21,7 @@ mazeDirectory =
 	'huge': []
 }
 
+var mouseAction = {};
 var musicOn = false;
 
 // store data per game!
@@ -163,6 +164,121 @@ function userData(initTime){
         	}
         	else ++counter;
         }
+}
+
+//
+// MouseWork engine, based on HTML5 not Canvas Engine.
+// 1. Instantiate it before use!
+// 2. Send mazeModel via setMazeModel()
+// 3. Use your mouse like the joystick!
+//
+var mouseWorkEngine = function(canvas) {
+
+	var theMazeModel;
+	var threshold = 10; // threshold size (px), lower for higher sensitivity & higher errors!
+	var interval = 800; //shortest movement interval (ms)! 
+
+	var mouseDownHook = false, mouseDblClickHook = false, handler;
+	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;
+	var mouseDblClickHook, mouseUpTime; //variable for double click
+
+	//object constructor! Don't overload the event listeners!
+	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e);});
+	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e);});
+	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e);});
+	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
+
+	this.setMazeModel = function(mazeModel) {
+		theMazeModel = mazeModel;
+	}
+
+	function moveMaze() {
+		//console.log(offsetX, offsetY);
+
+		//recalibrate mouse center
+		if (offsetX > 0) {
+			if (theMazeModel.movePlayer(AMaze.model.E_CONST)) updateStatus(theMazeModel);
+			else lastX = currX;
+		}
+		else if (offsetX < 0) {
+			if (theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
+			else lastX = currX;
+		}
+		else if (offsetY > 0) {
+			if (theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
+			else lastY = currY;
+		}
+		else if (offsetY < 0) {
+			if (theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
+			else lastY = currY;
+		}
+
+	}
+
+	function canvas_mouse_down(e) {
+		//console.log("down");
+		mouseDownHook = true;
+		lastX = get_mouse_x(e);
+		lastY = get_mouse_y(e);
+	}
+
+	function canvas_mouse_move(e) {
+
+		// acquire mouseXY per 1/10 to reduce error
+		if (mouseDownHook && Date.now() - lastTime > 100) {
+			offsetX = (currX = get_mouse_x(e)) - lastX;
+			offsetY = (currY = get_mouse_y(e)) - lastY;
+			var x = Math.abs(offsetX); 
+			var y = Math.abs(offsetY);
+			var currMove;
+			lastTime = Date.now();
+
+			if(x > threshold || y > threshold)
+			{console.log(x,y);
+
+				//not allow diagonal movement, recalibrate mouse center
+				if (x > y) {
+					offsetY = 0;
+					lastY = currY;
+					if (offsetX > 0) currMove = 2; else currMove = 4; 
+				}
+				else {
+					offsetX = 0;
+					lastX = get_mouse_x(e);
+					if (offsetY > 0) currMove = 4; else currMove = 1;
+				}
+
+				//trigger movement if dir changes
+				if (currMove != lastMove) {
+					lastMove = currMove;
+					moveMaze();
+				}
+				
+				if (!handler) handler = setInterval(function() {moveMaze();}, interval); //avoid overloading!
+			}
+		}
+	}
+
+	function canvas_mouse_out(e) {
+		//console.log("out");
+		mouseDownHook = false;
+		cleanInterval(handler);
+		handler = 0;
+		lastTime = 0;
+		lastMove = 0;
+	}
+
+	function canvas_mouse_up(e) {
+		//console.log("up");
+		mouseDownHook = false;
+		clearInterval(handler);
+		handler = 0;
+		lastTime = 0;
+		lastMove = 0;
+	}
+
+	function get_mouse_x(e) {return Math.floor(e.clientX - canvas.offsetLeft);}
+	function get_mouse_y(e) {return Math.floor(e.clientY - canvas.offsetTop);}
 }
 
 // callback function for loading the game canvas & spritemap
@@ -315,6 +431,9 @@ function setGameCanvas(loaded) {
 					canvas.Sound.playLoop("theme1");
 				}
 
+				//set mouse action
+				mouseAction.setMazeModel(modelTest);
+
 				//piggyback on Amaze model
 				modelTest.userData = new userData(Date.now());
 				modelTest.gameData = gameData; //make gameData testable
@@ -349,6 +468,7 @@ function setGameCanvas(loaded) {
 
 $(function() {
 
+	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
 	currentMazeFile = getNextMaze();
 
 	//not testing the model here, assume it works
