@@ -193,5 +193,14 @@ restapi.all("/", function(req, res) {
     res.status(404).json({"response":"not found"});
 });
 
+var port = process.env.PORT || 8080;
 
-restapi.listen(3000);
+restapi.listen(port, function() {
+    console.log('Our app is running on http://localhost:' + port);
+});
+
+
+
+
+
+//restapi.listen(3000);
