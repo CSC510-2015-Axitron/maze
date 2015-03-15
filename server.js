@@ -20,7 +20,7 @@ setInterval(function(){
 
 //DB initial setup
 db.serialize(function() {
-    db.run("CREATE TABLE IF NOT EXISTS user (id INTEGER NOT NULL, password TEXT NOT NULL, email TEXT NOT NULL, "
+    db.run("CREATE TABLE IF NOT EXISTS user (id INTEGER NOT NULL, password TEXT NOT NULL, email TEXT NOT NULL UNIQUE ON CONFLICT ABORT, "
           +"CONSTRAINT pk_user PRIMARY KEY (id) ON CONFLICT ABORT)");
 
     db.run("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER NOT NULL, name TEXT NOT NULL, "
@@ -190,6 +190,72 @@ restapi.post('/play/:mazeno/:user', function(req, res) {
 
 restapi.all('/user/:user', auth);
 
+restapi.get('/user/:user', function(req, res){
+    if(tokens[req.headers.authorization].userid != req.params.user) return res.status(403).json({"response":"not authorized"});
+
+    userByAttr('id', req.params.user, function(err, user){
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        
+        res.status(200).json({"user":req.params.user,"email":user.email});
+    });
+});
+
+//does not do any password fitness checking! do your own checking >:[
+restapi.post('/user/:user', function(req, res){
+    if(tokens[req.headers.authorization].userid != req.params.user) return res.status(403).json({"response":"not authorized"});
+    if(!(req.body.password || req.body.email)) return res.status(400).json({"response":"invalid syntax, missing parameters"});
+    
+    userByAttr('id', req.params.user, function(err, user){
+        var newPass = user.password, newEmail = req.body.email || user.email,
+        runUpdate = function(){
+            db.run("UPDATE user SET email = ?, password = ? WHERE id = ?", [newEmail, newPass, req.params.user],
+                function(err) {
+                    if(err) return res.status(500).json({"response":"Error occurred"});
+                    
+                    res.status(200).json({"response":"user updated"});
+                });
+        };
+        if(req.body.password) hasher.encryptPassword(req.body.password, function(err, encPass){
+                newPass = encPass;
+                runUpdate();
+            });
+        else
+            runUpdate();
+    });
+});
+
+//need to somehow limit this, but idk how
+//does not do any password fitness checking!
+restapi.post('/register', function(req,res){
+    if(!(req.body.email && req.body.password)) return res.status(400).json({"response":"invalid syntax, missing parameters"});
+    
+    hasher.encryptPassword(req.body.password, function(err, encPass) {
+        db.run("INSERT INTO user (email, password) VALUES (?, ?)", [req.body.email, encPass], function(err) {
+            if(err)
+            {
+                if(err.code && err.code === 'SQLITE_CONSTRAINT')
+                    return res.status(400).json({"response":"duplicate email address"})
+                return res.status(500).json({"response":"Error occurred"});
+            }
+            if(this.lastID) return res.status(200).json({"response":"user registered","user":this.lastID});
+        });
+    });
+});
+
+
+restapi.get('/played/:user', function(req, res){
+    db.all("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE userID = ?",
+        [req.params.user], function(err, rows) {
+        if(err) return res.status(500).json({"response":"Error occurred"});
+
+        var response = {"user":req.params.user,played:[]};
+        if(rows) rows.forEach(function(item){
+            response.played[item.mazeno] = {"mazeno":item.mazeno,"user":item.userID,
+                "bestTime":item.bestTime,"stepsForBestTime":item.stepsForBestTime};
+        });
+        res.status(200).json(response);
+    });
+});
 
 restapi.get('/maze/:mazeno', function(req, res){
     db.get("SELECT mazeno, displayName, isUserMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
