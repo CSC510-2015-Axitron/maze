@@ -8,7 +8,8 @@ var sqlite3 = require('sqlite3').verbose(),
     restapi = express();
 
 //{token:{userid:(id), validUntil:(date)}}
-var tokens = {};
+var tokens = {},
+    port = process.env.PORT || 8080;
 
 setInterval(function(){
     var now = new Date();
@@ -242,4 +243,6 @@ restapi.all("/", function(req, res) {
 });
 
 
-restapi.listen(3000);
+restapi.listen(port, function() {
+    console.log('Our app is running on http://localhost:' + port);
+});
