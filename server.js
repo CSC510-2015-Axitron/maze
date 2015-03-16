@@ -53,15 +53,16 @@ posts:
 /login : none; submits a login request, error if db error or incorrect credentials, login token if successful
 
 */
+if(!process.env.JAWSDB_URL) return console.log("Did you forget to set JAWSDB_URL to your mysql server params?");
 
-var config = require("./config.js"),
-    mysql = require('mysql'),
+
+var mysql = require('mysql'),
     NodePbkdf2 = require('node-pbkdf2'),
     uuid = require('node-uuid'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    connectionParams = process.env.JAWSDB_URL ||
-        { host:config.host, user:config.user, password:config.password },
+    connectionParams = process.env.JAWSDB_URL[process.env.JAWSDB_URL.length-1]==='/'?
+        process.env.JAWSDB_URL: process.env.JAWSDB_URL+'/',
     db = mysql.createConnection(connectionParams),
     hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 }),//ensure this fits in password field
     restapi = express();
