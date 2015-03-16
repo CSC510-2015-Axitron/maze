@@ -85,9 +85,11 @@ describe('MAZEMODEL TESTS', function() {
     var maze3;
     // This test is hopelessly broken.
     describe('test loadout', function(){
-        before(function(){
-            maze3 = AMaze.model.load('http://localhost:8080/mocks/maze1.json', function(loaded){
-               return loaded;
+        this.timeout(5000);
+        before(function(done){
+            AMaze.model.load('http://localhost:8080/mocks/maze1.json', function(loaded){
+               maze3 = loaded;
+               done();
             });
         });
         it('Check that maze3 exists', function(){
@@ -103,13 +105,13 @@ describe('MAZEMODEL TESTS', function() {
             assert.equal(maze3.width, 2);
         });
         it('Check maze height', function(){
-            assert.equal(maze3.height, 4);
+            assert.equal(maze3.height, 3);
         });
         it('Check that start is in the right place', function(){
-            assert.equal(maze3.start, [0,1]);
+            assert.deepEqual(maze3.start, [0,1]);
         });
         it('Check that end is in the right place', function(){
-            assert.equal(maze3.end, [1,2]);
+            assert.deepEqual(maze3.end, [1,2]);
         });
     });
     
