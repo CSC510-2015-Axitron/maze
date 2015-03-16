@@ -31,7 +31,7 @@ window = {
 //jQuery simulator
 $ = function(obj) {
 
-	var components = {
+	this.components = {
 		0: {
 			width: function() {return 40;},
 			height: function() {return 10;}
@@ -70,6 +70,10 @@ $ = function(obj) {
 	}
 }
 
+$.getJSON = function(filename, options, func) {
+        var obj = require(filename);        
+        func(obj);
+}
 
 //Amaze model mock object
 AMaze = {};
