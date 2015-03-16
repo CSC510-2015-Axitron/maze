@@ -54,14 +54,24 @@ posts:
 
 */
 
-var sqlite3 = require('sqlite3').verbose(),
+var config = require("./config.js"),
+    sqlite3 = require('sqlite3').verbose(),
+    mysql = require('mysql'),
     NodePbkdf2 = require('node-pbkdf2'),
     uuid = require('node-uuid'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    db = new sqlite3.Database('server.db'),
-    hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 }),
+//  db = new sqlite3.Database('server.db'),
+    db = mysql.createConnection({
+        host:config.host,
+        user:config.user,
+        password:config.password,
+        database:config.database
+    }),
+    hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 }),//ensure this fits in password field
     restapi = express();
+
+db.connect();
 
 //{token:{userid:(id), validUntil:(date)}}
 var tokens = {},
@@ -76,46 +86,47 @@ setInterval(function(){
 }, 1000*60*2);
 
 //DB initial setup
-db.serialize(function() {
-    db.run("CREATE TABLE IF NOT EXISTS user (id INTEGER NOT NULL, password TEXT NOT NULL, email TEXT NOT NULL UNIQUE ON CONFLICT ABORT, "
-          +"CONSTRAINT pk_user PRIMARY KEY (id) ON CONFLICT ABORT)");
+db.beginTransaction(function(err) {
+    if(err) return console.log(err);
+    db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(256) NOT NULL UNIQUE, "
+          +"CONSTRAINT pk_user PRIMARY KEY (id))");
 
-    db.run("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER NOT NULL, name TEXT NOT NULL, "
-          +"CONSTRAINT pk_mazeCat PRIMARY KEY (id) ON CONFLICT ABORT)");
+    db.query("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER AUTO_INCREMENT, name VARCHAR(128) NOT NULL, "
+          +"CONSTRAINT pk_mazeCat PRIMARY KEY (id))");
 
-    db.run("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER NOT NULL, displayName TEXT NOT NULL, userForMaze INTEGER, height INTEGER NOT NULL, width INTEGER NOT NULL, "
-          +"mazeJSON TEXT NOT NULL, category INTEGER DEFAULT NULL, "
-          +"CONSTRAINT pk_maze PRIMARY KEY (mazeno) ON CONFLICT ABORT, "
+    db.query("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER AUTO_INCREMENT, displayName VARCHAR(128) NOT NULL, userForMaze INTEGER, height INTEGER NOT NULL, width INTEGER NOT NULL, "
+          +"mazeJSON VARCHAR(65536) NOT NULL, category INTEGER DEFAULT NULL, "
+          +"CONSTRAINT pk_maze PRIMARY KEY (mazeno), "
           +"CONSTRAINT fk_maze_category FOREIGN KEY (category) REFERENCES mazeCategory (id) ON UPDATE CASCADE ON DELETE SET NULL,"
           +"CONSTRAINT fk_maze_user FOREIGN KEY (userForMaze) REFERENCES user(id) ON UPDATE CASCADE ON DELETE SET NULL)");
 
-    db.run("CREATE TABLE IF NOT EXISTS play (mazeno INTEGER, userID INTEGER, bestTime INTEGER, stepsForBestTime INTEGER, "
-          +"CONSTRAINT pk_play PRIMARY KEY (mazeno, userID) ON CONFLICT REPLACE, "
+    db.query("CREATE TABLE IF NOT EXISTS play (mazeno INTEGER, userID INTEGER, bestTime INTEGER, stepsForBestTime INTEGER, "
+          +"CONSTRAINT pk_play PRIMARY KEY (mazeno, userID), "
           +"CONSTRAINT fk_play_user FOREIGN KEY (userID) REFERENCES user (id) ON UPDATE CASCADE ON DELETE CASCADE, "
           +"CONSTRAINT fk_play_maze FOREIGN KEY (mazeno) REFERENCES maze (mazeno) ON UPDATE CASCADE ON DELETE CASCADE)");
 
     //these categories are hardcoded here but putting in a config file with customized
     //categories would not be difficult
-    db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 000,    "Small Mazes (5-10)");
-    db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 100,    "Medium Mazes (10-20)");
-    db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 200,    "Large Mazes (20-30)");
-    db.run("INSERT OR IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", 300,    "Huge Mazes (30+)");
+    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [1,    "Small Mazes (5-10)"]);
+    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [101,    "Medium Mazes (10-20)"]);
+    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [201,    "Large Mazes (20-30)"]);
+    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [301,    "Huge Mazes (30+)"]);
     
     if(debug)
     {
         //dummy mazes
-        db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            0, "Debug maze", null, 2, 2, "{}", 0);
-        db.run("INSERT OR IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            1, "Debug maze 2", null, 2, 2, "{}", 0);
+        db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [1, "Debug maze", null, 2, 2, "{}", 1]);
+        db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [2, "Debug maze 2", null, 2, 2, "{}", 1]);
 
         //dummy users
-        db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 0,
+        db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [1,
             'pec3ZNq6/AnleyBwy3Ft::wYjmgHHjB4zJDYHiH1jnTX7YtQCIq86PgQvfzrsagsnyAk5jKprTsIS4Os3IzGFqhKFqeaH3tkUXSJh3::60::10000',
-            'dummy1@dum.my');//testpassword1
-        db.run("INSERT OR IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", 1,
+            'dummy1@dum.my']);//testpassword1
+        db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [2,
             'LJf57nNfbkdcdgWzEqIe::HbrEUuOKIg1TzoWnZBdYBlUy1NqPr+YfL59NLCd7lSksyodThL8xoHN7GdLg6qdQwZ6YtNBcHrRfQ8Os::60::10000',
-            'dummy2@dum.my');//testpassword27
+            'dummy2@dum.my']);//testpassword27
     }
 });
 
@@ -124,17 +135,17 @@ function userByAttr(attribute, value, done) {
     doneFunc = done;
     var rowFunc = function(err, row) {
         if(!err)
-            if(row)
-                doneFunc(null, row);
+            if(row && row[0])
+                doneFunc(null, row[0])
             else
                 doneFunc({"error":"user does not exist","errcode":1});//dummy error code, we don't really use them anywhere else
         else
             doneFunc(err, null);
     };
     if(attribute === 'email')
-        db.get("SELECT id, password, email FROM user WHERE email = ?", [value], rowFunc);
+        db.query("SELECT id, password, email FROM user WHERE email = ?", [value], rowFunc);
     else if(attribute === 'id')
-        db.get("SELECT id, password, email FROM user WHERE id = ?", [value], rowFunc);
+        db.query("SELECT id, password, email FROM user WHERE id = ?", [value], rowFunc);
     else done(null, null);
 }
 
@@ -202,15 +213,15 @@ restapi.all('/keepalive', auth, function(req, res) {
 });
 
 restapi.get('/play/:mazeno/:user', function(req, res) {
-    db.get("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
+    db.query("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
         [req.params.mazeno, req.params.user], function(err, row)
     {
         if(err) return res.status(500).json({"response":"Error occurred"});
-        if(!row) return res.status(404).json({"response":"user has not completed level",
+        if(!row || !row[0]) return res.status(404).json({"response":"user has not completed level",
             "user":req.params.user,"mazeno":req.params.mazeno});
         
-        res.status(200).json({"mazeno":req.params.mazeno,"user":req.params.user,"bestTime":row.bestTime,"unit":"ms",
-            "stepsForBestTime":row.stepsForBestTime});
+        res.status(200).json({"mazeno":req.params.mazeno,"user":req.params.user,"bestTime":row[0].bestTime,"unit":"ms",
+            "stepsForBestTime":row[0].stepsForBestTime});
     });
 });
 
@@ -220,17 +231,17 @@ restapi.post('/play/:mazeno/:user', function(req, res) {
     if(!(req.params.user == tokens[req.headers.authorization].userid)) return res.status(403).json({"response":"not authorized"});
     if(!(req.body.time && req.body.steps)) return res.status(400).json({"response":"invalid syntax, missing parameters"});
     
-    db.get("SELECT mazeno FROM maze WHERE mazeno = ?", [req.params.mazeno], function(err, row){
+    db.query("SELECT mazeno FROM maze WHERE mazeno = ?", [req.params.mazeno], function(err, row){
         if(err) return res.status(500).json({"response":"Error occurred"});
-        if(!row) return res.status(404).json({"response":"maze does not exist","mazeno":req.params.mazeno});
+        if(!row || !row[0]) return res.status(404).json({"response":"maze does not exist","mazeno":req.params.mazeno});
 
-        db.get("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
+        db.query("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? AND userID = ?",
             [req.params.mazeno, req.params.user], function(err, row)
         {
             if(err) return res.status(500).json({"response":"Error occurred"});
-            if(!row)
+            if(!row || !row[0])
             {
-                db.run("INSERT INTO play (mazeno, userID, bestTime, stepsForBestTime) VALUES (?, ?, ?, ?)",
+                db.query("INSERT INTO play (mazeno, userID, bestTime, stepsForBestTime) VALUES (?, ?, ?, ?)",
                     [req.params.mazeno, req.params.user, req.body.time, req.body.steps], function(err){
                     if(err) return res.status(500).json({"response":"Error occurred"});
                     
@@ -239,10 +250,10 @@ restapi.post('/play/:mazeno/:user', function(req, res) {
             }
             else
             {
-                if(row.bestTime < req.body.time) return res.status(200).json({"response":"time not better",
-                    "bestTime":row.bestTime,"stepsForBestTime":row.stepsForBestTime});
+                if(row[0].bestTime < req.body.time) return res.status(200).json({"response":"time not better",
+                    "bestTime":row[0].bestTime,"stepsForBestTime":row[0].stepsForBestTime});
 
-                db.run("UPDATE play SET bestTime = ?, stepsForBestTime = ? WHERE mazeno = ? AND userID = ?",
+                db.query("UPDATE play SET bestTime = ?, stepsForBestTime = ? WHERE mazeno = ? AND userID = ?",
                     [req.body.time, req.body.steps, req.params.mazeno, req.params.user], function(err) {
                     if(err) return res.status(500).json({"response":"Error occurred"});
                     
@@ -273,7 +284,7 @@ restapi.post('/user/:user', function(req, res){
     userByAttr('id', req.params.user, function(err, user){
         var newPass = user.password, newEmail = req.body.email || user.email,
         runUpdate = function(){
-            db.run("UPDATE user SET email = ?, password = ? WHERE id = ?", [newEmail, newPass, req.params.user],
+            db.query("UPDATE user SET email = ?, password = ? WHERE id = ?", [newEmail, newPass, req.params.user],
                 function(err) {
                     if(err.code && err.code === 'SQLITE_CONSTRAINT')
                         return res.status(400).json({"response":"duplicate email address"})
@@ -297,21 +308,21 @@ restapi.post('/register', function(req,res){
     if(!(req.body.email && req.body.password)) return res.status(400).json({"response":"invalid syntax, missing parameters"});
     
     hasher.encryptPassword(req.body.password, function(err, encPass) {
-        db.run("INSERT INTO user (email, password) VALUES (?, ?)", [req.body.email, encPass], function(err) {
+        db.query("INSERT INTO user (email, password) VALUES (?, ?)", [req.body.email, encPass], function(err, result) {
             if(err)
             {
                 if(err.code && err.code === 'SQLITE_CONSTRAINT')
                     return res.status(400).json({"response":"duplicate email address"})
                 return res.status(500).json({"response":"Error occurred"});
             }
-            if(this.lastID) return res.status(200).json({"response":"user registered","user":this.lastID});
+            if(result.insertId) return res.status(200).json({"response":"user registered","user":result.insertId});
         });
     });
 });
 
 
 restapi.get('/played/:user', function(req, res){
-    db.all("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE userID = ?",
+    db.query("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE userID = ?",
         [req.params.user], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
 
@@ -326,7 +337,7 @@ restapi.get('/played/:user', function(req, res){
 
 //get the records for a user in a category
 restapi.get('/played/:user/:category', function(req, res){
-    db.all("SELECT play.mazeno, userID, bestTime, stepsForBestTime FROM play, maze WHERE "
+    db.query("SELECT play.mazeno, userID, bestTime, stepsForBestTime FROM play, maze WHERE "
         +"play.userID = ? AND maze.mazeno = play.mazeno AND maze.category = ?",
         [req.params.user, req.params.category], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
@@ -341,7 +352,7 @@ restapi.get('/played/:user/:category', function(req, res){
 });
 
 restapi.get('/top10/:mazeno', function(req,res){
-    db.all("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? ORDER BY bestTime ASC LIMIT 0,10",
+    db.query("SELECT mazeno, userID, bestTime, stepsForBestTime FROM play WHERE mazeno = ? ORDER BY bestTime ASC LIMIT 0,10",
         [req.params.mazeno], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
         var response = {"maze":req.params.mazeno,"bestTimes":[]};
@@ -379,13 +390,13 @@ function checkMaze(json, returnFunc){
 restapi.post('/maze', auth, function(req, res){
     checkMaze(req.body, function(valid, err) {
         if(!valid) return res.status(400).json({"response":"invalid syntax","reason":err});
-        db.run("INSERT INTO maze (displayName, userForMaze, height, width, mazeJSON, category) VALUES "
+        db.query("INSERT INTO maze (displayName, userForMaze, height, width, mazeJSON, category) VALUES "
               +"($name, $user, $height, $width, $mazeJSON, $category)",
             {"$name":req.body.name,"$user":tokens[req.headers.authorization].userid,"$height":req.body.maze.height,
                 "$width":req.body.maze.width,"$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category},
-        function(err){
+        function(err, result){
             if(err) return res.status(500).json({"response":"Error occurred"});
-            if(this.lastID) return res.status(200).json({"mazeno":this.lastID});
+            if(result.insertId) return res.status(200).json({"mazeno":result.insertId});
             return res.status(500).json({"response":"Error occurred"});
         });
     });
@@ -395,22 +406,22 @@ restapi.post('/maze', auth, function(req, res){
 restapi.post('/maze/:mazeno', auth, function(req, res){
     checkMaze(req.body, function(valid, err){
         if(!valid) return res.status(400).json({"response":"invalid syntax","reason":err});
-        db.get("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
+        db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
             [req.params.mazeno], function(err, row){
             if(err) return res.status(500).json({"response":"Error occurred"});
             
-            if(!row) return res.status(404).json({"response":"maze not found","mazeno":req.params.mazeno});
+            if(!row || !row[0]) return res.status(404).json({"response":"maze not found","mazeno":req.params.mazeno});
             
-            if(tokens[req.headers.authorization].userid !== row.userForMaze)
+            if(tokens[req.headers.authorization].userid !== row[0].userForMaze)
                 return res.status(403).json({"response":"not authorized"});
 
-            db.run("UPDATE maze SET displayName = $name, height = $height, width = $width, mazeJSON = $mazeJSON, "
+            db.query("UPDATE maze SET displayName = $name, height = $height, width = $width, mazeJSON = $mazeJSON, "
                   +"category = $category WHERE mazeno = $mazeno",
                 {"$name":req.body.name,"$height":req.body.maze.height,"$width":req.body.maze.width,
                     "$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category,"$mazeno":req.params.mazeno},
-            function(err){
+            function(err, result){
                 if(err) return res.status(500).json({"response":"Error occurred"});
-                if(this.changes > 0) return res.status(200).json({"response":"maze updated"});
+                if(result.affectedRows > 0) return res.status(200).json({"response":"maze updated"});
                 return res.status(500).json({"response":"Error occurred"});
             });
         });
@@ -418,30 +429,30 @@ restapi.post('/maze/:mazeno', auth, function(req, res){
 });
 
 restapi.get('/maze/:mazeno', function(req, res){
-    db.get("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
+    db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE mazeno = ?",
         [req.params.mazeno], function(err, row){
         if(err) return res.status(500).json({"response":"Error occurred"});
-		if(!(row && row.mazeno != null)) return res.status(404).json({"response":"maze not found","query":req.params.mazeno});
-		res.status(200).json(row);
+		if(!(row && row[0] && row[0].mazeno != null)) return res.status(404).json({"response":"maze not found","query":req.params.mazeno});
+		res.status(200).json(row[0]);
     });
 });
 
 restapi.get("/mazes", function(req, res){
-    db.get("SELECT count(*) as numMazes from maze", function(err, row) {
+    db.query("SELECT count(*) as numMazes from maze", function(err, row) {
         if(err) return res.status(500).json({"response":"Error occurred"});
-        if(!row) return res.status(500).json({"response":"Error occurred"});
+        if(!row || !row[0]) return res.status(500).json({"response":"Error occurred"});
 
-        res.status(200).json({"mazes":row.numMazes});
+        res.status(200).json({"mazes":row[0].numMazes});
     });
 });
 
 restapi.get("/mazes/:category", function(req,res){
-    db.get("SELECT id, name FROM mazeCategory WHERE id = ?", [req.params.category], function(err, row) {
+    db.query("SELECT id, name FROM mazeCategory WHERE id = ?", [req.params.category], function(err, row) {
         if(err) return res.status(500).json({"response":"Error occurred in retrieving category information","error":err});
-        if(!row) return res.status(404).json({"response":"category not found", "query":req.params.category});
+        if(!row || !row[0]) return res.status(404).json({"response":"category not found", "query":req.params.category});
 
-        var rowBack = row;
-        db.all("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
+        var rowBack = row[0];
+        db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
             [req.params.category], function(err, rows)
         {
             if(err) return res.status(500).json({"response":"Error occurred in finding mazes for category","error":err});
@@ -458,7 +469,7 @@ restapi.get("/mazes/:category", function(req,res){
 });
 
 restapi.get("/categories", function(req, res) {
-    db.all("SELECT id, name FROM mazeCategory", function(err, rows) {
+    db.query("SELECT id, name FROM mazeCategory", function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occured in retrieving category information","error":err});
 
 		var response = [];

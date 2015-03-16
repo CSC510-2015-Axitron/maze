@@ -4,3 +4,4 @@ coverage/
 public/levels/.DS_Store
 report.html
 server.db
+config.js
