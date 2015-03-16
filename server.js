@@ -226,9 +226,9 @@ restapi.get('/play/:mazeno/:user', function(req, res) {
     {
         if(err) return res.status(500).json({"response":"Error occurred"});
         if(!row || !row[0]) return res.status(404).json({"response":"user has not completed level",
-            "user":req.params.user,"mazeno":req.params.mazeno});
+            "userid":req.params.user,"mazeno":req.params.mazeno});
         
-        res.status(200).json({"mazeno":req.params.mazeno,"user":req.params.user,"bestTime":row[0].bestTime,"unit":"ms",
+        res.status(200).json({"mazeno":req.params.mazeno,"userid":req.params.user,"bestTime":row[0].bestTime,"unit":"ms",
             "stepsForBestTime":row[0].stepsForBestTime});
     });
 });
@@ -280,7 +280,7 @@ restapi.get('/user/:user', function(req, res){
     userByAttr('id', req.params.user, function(err, user){
         if(err) return res.status(500).json({"response":"Error occurred"});
         
-        res.status(200).json({"user":req.params.user,"email":user.email});
+        res.status(200).json({"userid":req.params.user,"email":user.email});
     });
 });
 
@@ -323,7 +323,7 @@ restapi.post('/register', function(req,res){
                     return res.status(400).json({"response":"duplicate email address"})
                 return res.status(500).json({"response":"Error occurred"});
             }
-            if(result.insertId) return res.status(200).json({"response":"user registered","user":result.insertId});
+            if(result.insertId) return res.status(200).json({"response":"user registered","userid":result.insertId});
         });
     });
 });
@@ -334,9 +334,9 @@ restapi.get('/played/:user', function(req, res){
         [req.params.user], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
 
-        var response = {"user":req.params.user,played:[]};
+        var response = {"userid":req.params.user,played:[]};
         if(rows) rows.forEach(function(item){
-            response.played.push({"mazeno":item.mazeno,"user":item.userID,"bestTime":item.bestTime,
+            response.played.push({"mazeno":item.mazeno,"userid":item.userID,"bestTime":item.bestTime,
                 "stepsForBestTime":item.stepsForBestTime});
         });
         res.status(200).json(response);
@@ -350,9 +350,9 @@ restapi.get('/played/:user/:category', function(req, res){
         [req.params.user, req.params.category], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
 
-        var response = {"user":req.params.user,"category":req.params.category,"played":[]};
+        var response = {"userid":req.params.user,"category":req.params.category,"played":[]};
         if(rows) rows.forEach(function(item) {
-            response.played.push({"mazeno":item.mazeno,"user":item.userID,"bestTime":item.bestTime,
+            response.played.push({"mazeno":item.mazeno,"userid":item.userID,"bestTime":item.bestTime,
                 "stepsForBestTime":item.stepsForBestTime});
         });
         res.status(200).json(response);
