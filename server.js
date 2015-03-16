@@ -163,7 +163,7 @@ function login(req, res) {
             return  res.status(403).json({"response":"already authorized"});
         else delete tokens[req.headers.authorization];
     }
-    if(!(req.body.email && req.body.password)) return res.status(401).json({"response":"invalid login credentials"});
+    if(!(req.body.email && req.body.password)) return res.status(401).json({"response":"No login credentials"});
 
 	userByAttr('email', req.body.email, function(err, user) {
 		if(err)
