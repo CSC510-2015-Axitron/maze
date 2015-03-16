@@ -86,7 +86,7 @@ db.query("CREATE DATABASE IF NOT EXISTS mazedb", function(err) {
     if(err) return console.log(err);
     db.query("USE mazedb", function(err) {
         if(err) return console.log(err);
-        db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(256) NOT NULL UNIQUE, "
+        db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(128) NOT NULL UNIQUE, "
               +"CONSTRAINT pk_user PRIMARY KEY (id))", function(err) {
 
         if(err) return console.log(err);
