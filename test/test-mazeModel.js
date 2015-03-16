@@ -109,14 +109,14 @@ describe('MAZEMODEL TESTS', function() {
                     mazeModel.load('./mocks/maze1.json', function(obj) {maze3 = obj;});
                     assert.equal(maze3.height, 3);
                 });
-                //it('Check that start is in the right place', function(){
-                //    mazeModel.load('./mocks/maze1.json', function(obj) {maze3 = obj;});
-                //    assert.equal(maze3.start, [0,1]);
-                //});
-                //it('Check that end is in the right place', function(){
-                //    mazeModel.load('./mocks/maze1.json', function(obj) {maze3 = obj;});
-                //    assert.equal(maze3.end, [1,2]);
-                //});
+                it('Check that start is in the right place', function(){
+                    mazeModel.load('./mocks/maze1.json', function(obj) {maze3 = obj;});
+                    assert.deepEqual(maze3.start, [0,1]);
+                });
+                it('Check that end is in the right place', function(){
+                    mazeModel.load('./mocks/maze1.json', function(obj) {maze3 = obj;});
+                    assert.deepEqual(maze3.end, [1,2]);
+                });
             });
         //});
     });
