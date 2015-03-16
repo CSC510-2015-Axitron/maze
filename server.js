@@ -82,50 +82,58 @@ setInterval(function(){
 }, 1000*60*2);
 
 //DB initial setup
-db.beginTransaction(function(err) {
+db.query("CREATE DATABASE IF NOT EXISTS mazedb", function(err) {
     if(err) return console.log(err);
-    db.query("CREATE DATABASE IF NOT EXISTS mazedb");
-    db.query("USE mazedb");
-    db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(256) NOT NULL UNIQUE, "
-          +"CONSTRAINT pk_user PRIMARY KEY (id))");
+    db.query("USE mazedb", function(err) {
+        if(err) return console.log(err);
+        db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(256) NOT NULL UNIQUE, "
+              +"CONSTRAINT pk_user PRIMARY KEY (id))", function(err) {
 
-    db.query("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER AUTO_INCREMENT, name VARCHAR(128) NOT NULL, "
-          +"CONSTRAINT pk_mazeCat PRIMARY KEY (id))");
-
-    db.query("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER AUTO_INCREMENT, displayName VARCHAR(128) NOT NULL, userForMaze INTEGER, height INTEGER NOT NULL, width INTEGER NOT NULL, "
-          +"mazeJSON VARCHAR(65536) NOT NULL, category INTEGER DEFAULT NULL, "
-          +"CONSTRAINT pk_maze PRIMARY KEY (mazeno), "
-          +"CONSTRAINT fk_maze_category FOREIGN KEY (category) REFERENCES mazeCategory (id) ON UPDATE CASCADE ON DELETE SET NULL,"
-          +"CONSTRAINT fk_maze_user FOREIGN KEY (userForMaze) REFERENCES user(id) ON UPDATE CASCADE ON DELETE SET NULL)");
-
-    db.query("CREATE TABLE IF NOT EXISTS play (mazeno INTEGER, userID INTEGER, bestTime INTEGER, stepsForBestTime INTEGER, "
-          +"CONSTRAINT pk_play PRIMARY KEY (mazeno, userID), "
-          +"CONSTRAINT fk_play_user FOREIGN KEY (userID) REFERENCES user (id) ON UPDATE CASCADE ON DELETE CASCADE, "
-          +"CONSTRAINT fk_play_maze FOREIGN KEY (mazeno) REFERENCES maze (mazeno) ON UPDATE CASCADE ON DELETE CASCADE)");
-
-    //these categories are hardcoded here but putting in a config file with customized
-    //categories would not be difficult
-    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [1,    "Small Mazes (5-10)"]);
-    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [101,    "Medium Mazes (10-20)"]);
-    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [201,    "Large Mazes (20-30)"]);
-    db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [301,    "Huge Mazes (30+)"]);
+        if(err) return console.log(err);
+        db.query("CREATE TABLE IF NOT EXISTS mazeCategory (id INTEGER AUTO_INCREMENT, name VARCHAR(128) NOT NULL, "
+              +"CONSTRAINT pk_mazeCat PRIMARY KEY (id))", function(err) {
     
-    if(debug)
-    {
-        //dummy mazes
-        db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [1, "Debug maze", null, 2, 2, "{}", 1]);
-        db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [2, "Debug maze 2", null, 2, 2, "{}", 1]);
+        if(err) return console.log(err);
 
-        //dummy users
-        db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [1,
-            'pec3ZNq6/AnleyBwy3Ft::wYjmgHHjB4zJDYHiH1jnTX7YtQCIq86PgQvfzrsagsnyAk5jKprTsIS4Os3IzGFqhKFqeaH3tkUXSJh3::60::10000',
-            'dummy1@dum.my']);//testpassword1
-        db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [2,
-            'LJf57nNfbkdcdgWzEqIe::HbrEUuOKIg1TzoWnZBdYBlUy1NqPr+YfL59NLCd7lSksyodThL8xoHN7GdLg6qdQwZ6YtNBcHrRfQ8Os::60::10000',
-            'dummy2@dum.my']);//testpassword27
-    }
+        db.query("CREATE TABLE IF NOT EXISTS maze (mazeno INTEGER AUTO_INCREMENT, displayName VARCHAR(128) NOT NULL, userForMaze INTEGER, height INTEGER NOT NULL, width INTEGER NOT NULL, "
+              +"mazeJSON VARCHAR(65536) NOT NULL, category INTEGER DEFAULT NULL, "
+              +"CONSTRAINT pk_maze PRIMARY KEY (mazeno), "
+              +"CONSTRAINT fk_maze_category FOREIGN KEY (category) REFERENCES mazeCategory (id) ON UPDATE CASCADE ON DELETE SET NULL,"
+              +"CONSTRAINT fk_maze_user FOREIGN KEY (userForMaze) REFERENCES user(id) ON UPDATE CASCADE ON DELETE SET NULL)",
+        function(err) {
+        if(err) return console.log(err);
+
+        db.query("CREATE TABLE IF NOT EXISTS play (mazeno INTEGER, userID INTEGER, bestTime INTEGER, stepsForBestTime INTEGER, "
+              +"CONSTRAINT pk_play PRIMARY KEY (mazeno, userID), "
+              +"CONSTRAINT fk_play_user FOREIGN KEY (userID) REFERENCES user (id) ON UPDATE CASCADE ON DELETE CASCADE, "
+              +"CONSTRAINT fk_play_maze FOREIGN KEY (mazeno) REFERENCES maze (mazeno) ON UPDATE CASCADE ON DELETE CASCADE)",
+        function(err) {
+        if(err) return console.log(err);
+
+        //these categories are hardcoded here but putting in a config file with customized
+        //categories would not be difficult
+        db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [1,    "Small Mazes (5-10)"]);
+        db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [101,    "Medium Mazes (10-20)"]);
+        db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [201,    "Large Mazes (20-30)"]);
+        db.query("INSERT IGNORE INTO mazeCategory (id, name) VALUES (?, ?)", [301,    "Huge Mazes (30+)"]);
+    
+        if(debug)
+        {
+            //dummy mazes
+            db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [1, "Debug maze", null, 2, 2, "{}", 1]);
+            db.query("INSERT IGNORE INTO maze (mazeno, displayName, userForMaze, height, width, mazeJSON, category) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [2, "Debug maze 2", null, 2, 2, "{}", 1]);
+
+            //dummy users
+            db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [1,
+                'pec3ZNq6/AnleyBwy3Ft::wYjmgHHjB4zJDYHiH1jnTX7YtQCIq86PgQvfzrsagsnyAk5jKprTsIS4Os3IzGFqhKFqeaH3tkUXSJh3::60::10000',
+                'dummy1@dum.my']);//testpassword1
+            db.query("INSERT IGNORE INTO user (id, password, email) VALUES (?, ?, ?)", [2,
+                'LJf57nNfbkdcdgWzEqIe::HbrEUuOKIg1TzoWnZBdYBlUy1NqPr+YfL59NLCd7lSksyodThL8xoHN7GdLg6qdQwZ6YtNBcHrRfQ8Os::60::10000',
+                'dummy2@dum.my']);//testpassword27
+        } }); }); }); });
+    });
 });
 
 
