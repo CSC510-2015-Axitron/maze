@@ -55,19 +55,14 @@ posts:
 */
 
 var config = require("./config.js"),
-    sqlite3 = require('sqlite3').verbose(),
     mysql = require('mysql'),
     NodePbkdf2 = require('node-pbkdf2'),
     uuid = require('node-uuid'),
     express = require('express'),
     bodyParser = require('body-parser'),
-//  db = new sqlite3.Database('server.db'),
-    db = mysql.createConnection({
-        host:config.host,
-        user:config.user,
-        password:config.password,
-        database:config.database
-    }),
+    connectionParams = process.env.JAWSDB_URL ||
+        { host:config.host, user:config.user, password:config.password },
+    db = mysql.createConnection(connectionParams),
     hasher = new NodePbkdf2({ iterations: 10000, saltLength: 20, derivedKeyLength: 60 }),//ensure this fits in password field
     restapi = express();
 
@@ -88,6 +83,8 @@ setInterval(function(){
 //DB initial setup
 db.beginTransaction(function(err) {
     if(err) return console.log(err);
+    db.query("CREATE DATABASE IF NOT EXISTS mazedb");
+    db.query("USE mazedb");
     db.query("CREATE TABLE IF NOT EXISTS user (id INTEGER AUTO_INCREMENT, password CHAR(128) NOT NULL, email VARCHAR(256) NOT NULL UNIQUE, "
           +"CONSTRAINT pk_user PRIMARY KEY (id))");
 
@@ -285,9 +282,9 @@ restapi.post('/user/:user', function(req, res){
         var newPass = user.password, newEmail = req.body.email || user.email,
         runUpdate = function(){
             db.query("UPDATE user SET email = ?, password = ? WHERE id = ?", [newEmail, newPass, req.params.user],
-                function(err) {
-                    if(err.code && err.code === 'SQLITE_CONSTRAINT')
-                        return res.status(400).json({"response":"duplicate email address"})
+                function(err, result) {
+                    if(err && err.code && err.code === 'ER_DUP_ENTRY')
+                        return res.status(400).json({"response":"duplicate email address"});
                     if(err) return res.status(500).json({"response":"Error occurred"});
                     
                     res.status(200).json({"response":"user updated"});
@@ -311,7 +308,7 @@ restapi.post('/register', function(req,res){
         db.query("INSERT INTO user (email, password) VALUES (?, ?)", [req.body.email, encPass], function(err, result) {
             if(err)
             {
-                if(err.code && err.code === 'SQLITE_CONSTRAINT')
+                if(err.code && err.code === 'ER_DUP_ENTRY')
                     return res.status(400).json({"response":"duplicate email address"})
                 return res.status(500).json({"response":"Error occurred"});
             }
@@ -328,8 +325,8 @@ restapi.get('/played/:user', function(req, res){
 
         var response = {"user":req.params.user,played:[]};
         if(rows) rows.forEach(function(item){
-            response.played[item.mazeno] = {"mazeno":item.mazeno,"user":item.userID,
-                "bestTime":item.bestTime,"stepsForBestTime":item.stepsForBestTime};
+            response.played.push({"mazeno":item.mazeno,"user":item.userID,"bestTime":item.bestTime,
+                "stepsForBestTime":item.stepsForBestTime});
         });
         res.status(200).json(response);
     });
@@ -460,7 +457,7 @@ restapi.get("/mazes/:category", function(req,res){
             if(rows)
             {
                 rows.forEach(function(item) {
-                    response.mazes[item.mazeno] = {"mazeno":item.mazeno, "displayName":item.displayName};
+                    response.mazes.push({"mazeno":item.mazeno, "displayName":item.displayName});
                 });
             }
             res.status(200).json(response);
