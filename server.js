@@ -142,7 +142,9 @@ function userByAttr(attribute, value, done) {
     var rowFunc = function(err, row) {
         if(!err)
             if(row && row[0])
+            {
                 doneFunc(null, row[0])
+            }
             else
                 doneFunc({"error":"user does not exist","errcode":1});//dummy error code, we don't really use them anywhere else
         else
@@ -194,7 +196,7 @@ function login(req, res) {
 			{
 				var token = uuid.v4(), dateExpire = new Date();
 				tokens[token] = {"userid":user.id, "validUntil":(dateExpire.setMinutes(dateExpire.getMinutes() + 30))};
-				res.status(200).json({"token":token});
+				res.status(200).json({"userid":user.id,"token":token});
 			}
 			else res.status(401).json({"response":"invalid login credentials"});
 		});
