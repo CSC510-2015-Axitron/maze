@@ -185,7 +185,7 @@ var soundWizzard = {
 	initiate: function() {
 		if (buzz.isSupported()) {
 			this.isActive = true;
-			this.playList.push(new buzz.sound(this.musicFiles[1]));
+			this.playList.push(new buzz.sound(this.musicFiles[0]));
 		}
 		else this.isActive = false;
 	},
@@ -208,7 +208,9 @@ var mouseWorkEngine = function(canvas) {
 
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 500; //shortest movement interval (ms)! 
+	var interval = 800; //shortest movement interval (ms)! 
+	var interval_max = 1000; //max movement interval
+	var accelerator = 3; //mouse accelerator
 
 	var mouseDownHook = false, mouseDblClickHook = false, handler;
 	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;
@@ -268,6 +270,7 @@ var mouseWorkEngine = function(canvas) {
 			var x = Math.abs(offsetX); 
 			var y = Math.abs(offsetY);
 			var currMove;
+			var adj_interval;
 			lastTime = Date.now();
 
 			if(x > threshold || y > threshold)
@@ -277,6 +280,7 @@ var mouseWorkEngine = function(canvas) {
 				if (x > y) {
 					offsetY = 0;
 					if (offsetX > 0) currMove = 2; else currMove = 4; 
+
 				}
 				else {
 					offsetX = 0;
