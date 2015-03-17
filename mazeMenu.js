@@ -208,7 +208,7 @@ var mouseWorkEngine = function(canvas) {
 
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 800; //shortest movement interval (ms)! 
+	var interval = 500; //shortest movement interval (ms)! 
 	var interval_max = 1000; //max movement interval
 	var accelerator = 3; //mouse accelerator
 
@@ -280,11 +280,12 @@ var mouseWorkEngine = function(canvas) {
 				if (x > y) {
 					offsetY = 0;
 					if (offsetX > 0) currMove = 2; else currMove = 4; 
-
+					adj_interval = Math.max(0, (interval_max - interval)*(1- (x-threshold)/accelerator/threshold));
 				}
 				else {
 					offsetX = 0;
 					if (offsetY > 0) currMove = 3; else currMove = 1;
+					adj_interval = Math.max(0, (interval_max - interval)*(1- (y-threshold)/accelerator/threshold));
 				}
 				
 				lastX = currX;
@@ -304,7 +305,7 @@ var mouseWorkEngine = function(canvas) {
 								clearInterval(handler);
 								handler = 0;
 							}
-						}, interval); //avoid overloading!
+						}, interval + adj_interval); //avoid overloading!
 					}
 				}
 			}
