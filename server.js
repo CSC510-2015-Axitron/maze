@@ -33,24 +33,31 @@ posts:
 /keepalive : auth'd; same as get
 
 /play/:mazeno/:user : auth'd; submits a completion time/steps for the given maze number and user, error if token invalid or
-    user doesn't match or a confirmation if successful, data format is {time:(time in ms),steps:(steps)}
+    user doesn't match or a confirmation if successful, data format is { time:(time in ms), steps:(steps) }
 
 /user/:user : auth'd; submits a user edit request, users can only edit their email and password, and no confirmation is
     required nor asked, error if db error or neither value was edited or duplicate email, confirmation is successful,
-    data format is {email:(email),password:(new password)}, both fields are optional but at least one must be present
+    data format is { email:(email), password:(new password) }, both fields are optional but at least one must be present
 
 /register : none; submits a user registration request, error if db error or duplicate email, otherwise confirmation if registered,
-    data format is {email:(email),password:(password)}
+    data format is { email:(email), password:(password) }
 
 /maze : auth'd; submits a new maze request, error if maze is incorrectly formatted (with an explanation why) or db error,
     confirmation if successful, data format is:
-        {name:(name)(,category:(category)),maze:{height:(height),width:(width),board:[[0,0,...],[],...[]]}}
+        { name: (name) (, category: (category) ),
+            maze:
+            {
+                height:(height), width:(width), start:[0,0], end:[0,0],
+                board:[ [ 0,0,... ], [ ], ... [ ] ]
+            }
+        }
     board must be a rectangular 2d array with #width inner arrays of length #height
 
 /maze/:mazeno : auth'd; submits a maze edit request, error if maze is incorrectly formatted or db error or not owner,
     confirmation if successful, data format is same as /maze
 
-/login : none; submits a login request, error if db error or incorrect credentials, login token if successful
+/login : none; submits a login request, error if db error or incorrect credentials, login token if successful,
+    data format is { email:(email), password:(password) }
 
 */
 if(!process.env.JAWSDB_URL) return console.log("Did you forget to set JAWSDB_URL to your mysql server params?");
@@ -346,7 +353,7 @@ restapi.get('/played/:user', function(req, res){
 //get the records for a user in a category
 restapi.get('/played/:user/:category', function(req, res){
     db.query("SELECT play.mazeno, userID, bestTime, stepsForBestTime FROM play, maze WHERE "
-        +"play.userID = ? AND maze.mazeno = play.mazeno AND maze.category = ?",
+        +"play.userID = ? AND maze.mazeno = play.mazeno AND maze.category = ? AND maze.userForMaze IS NULL",
         [req.params.user, req.params.category], function(err, rows) {
         if(err) return res.status(500).json({"response":"Error occurred"});
 
@@ -399,9 +406,9 @@ restapi.post('/maze', auth, function(req, res){
     checkMaze(req.body, function(valid, err) {
         if(!valid) return res.status(400).json({"response":"invalid syntax","reason":err});
         db.query("INSERT INTO maze (displayName, userForMaze, height, width, mazeJSON, category) VALUES "
-              +"($name, $user, $height, $width, $mazeJSON, $category)",
-            {"$name":req.body.name,"$user":tokens[req.headers.authorization].userid,"$height":req.body.maze.height,
-                "$width":req.body.maze.width,"$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category},
+              +"(?, ?, ?, ?, ?, ?)",
+            [req.body.name, tokens[req.headers.authorization].userid, req.body.maze.height,
+                req.body.maze.width, JSON.stringify(req.body.maze), req.body.category],
         function(err, result){
             if(err) return res.status(500).json({"response":"Error occurred"});
             if(result.insertId) return res.status(200).json({"mazeno":result.insertId});
@@ -423,10 +430,9 @@ restapi.post('/maze/:mazeno', auth, function(req, res){
             if(tokens[req.headers.authorization].userid !== row[0].userForMaze)
                 return res.status(403).json({"response":"not authorized"});
 
-            db.query("UPDATE maze SET displayName = $name, height = $height, width = $width, mazeJSON = $mazeJSON, "
-                  +"category = $category WHERE mazeno = $mazeno",
-                {"$name":req.body.name,"$height":req.body.maze.height,"$width":req.body.maze.width,
-                    "$mazeJSON":JSON.stringify(req.body.maze),"$category":req.body.category,"$mazeno":req.params.mazeno},
+            db.query("UPDATE maze SET displayName = ?, height = ?, width = ?, mazeJSON = ?, category = ? WHERE mazeno = ?",
+                [req.body.name, req.body.maze.height, req.body.maze.width, JSON.stringify(req.body.maze), req.body.category,
+                    req.params.mazeno],
             function(err, result){
                 if(err) return res.status(500).json({"response":"Error occurred"});
                 if(result.affectedRows > 0) return res.status(200).json({"response":"maze updated"});
@@ -454,13 +460,14 @@ restapi.get("/mazes", function(req, res){
     });
 });
 
-restapi.get("/mazes/:category", function(req,res){
+restapi.get("/mazes/category/:category", function(req,res){
     db.query("SELECT id, name FROM mazeCategory WHERE id = ?", [req.params.category], function(err, row) {
         if(err) return res.status(500).json({"response":"Error occurred in retrieving category information","error":err});
         if(!row || !row[0]) return res.status(404).json({"response":"category not found", "query":req.params.category});
 
         var rowBack = row[0];
-        db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE category = ?",
+        db.query("SELECT mazeno, displayName, height, width, mazeJSON, category FROM maze WHERE category = ? "
+            +"AND userForMaze IS NULL",//don't want no stinkin' user mazes in my categories!
             [req.params.category], function(err, rows)
         {
             if(err) return res.status(500).json({"response":"Error occurred in finding mazes for category","error":err});
@@ -473,6 +480,22 @@ restapi.get("/mazes/:category", function(req,res){
             }
             res.status(200).json(response);
         });
+    });
+});
+
+restapi.get("/mazes/user/:user", function(req, res){
+    db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE userForMaze = ?",
+        [req.params.user], function(err, rows)
+    {
+        if(err) return res.status(500).json({"response":"Error occurred"});
+        var response = {"userid":req.params.user, mazes:[]};
+        if(rows)
+        {
+            rows.forEach(function(item) {
+                response.mazes.push({"mazeno":item.mazeno, "displayName":item.displayName});
+            });
+        }
+        res.status(200).json(response);
     });
 });
 
