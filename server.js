@@ -22,8 +22,10 @@ gets:
 
 /mazes : none; returns count of mazes in the db, error if db error, value if successful
 
-/mazes/:category : none; returns the category details, mazenumbers, and maze names for all mazes in a category, error if db error
-    or category not valid, values if successful
+/mazes/category/:category : none; returns the category details, mazenumbers, and maze names for all mazes in a category,
+    error if db error or category not valid, values if successful
+
+/mazes/user/:user : none; returns the mazes submitted by that user, error if db error or user not valid, values if successful
 
 /categories : none; returns details of all categories, error if db error, values if successful
 
@@ -484,18 +486,23 @@ restapi.get("/mazes/category/:category", function(req,res){
 });
 
 restapi.get("/mazes/user/:user", function(req, res){
-    db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE userForMaze = ?",
-        [req.params.user], function(err, rows)
-    {
+    db.query("SELECT id FROM user WHERE id = ?", [req.params.user], function(err, row) {
+        if(err) console.log(err);
         if(err) return res.status(500).json({"response":"Error occurred"});
-        var response = {"userid":req.params.user, mazes:[]};
-        if(rows)
+        if(!row || !row[0]) return res.status(404).json({"response":"user not found", "query":req.params.user});
+        db.query("SELECT mazeno, displayName, userForMaze, height, width, mazeJSON, category FROM maze WHERE userForMaze = ?",
+            [req.params.user], function(err, rows)
         {
-            rows.forEach(function(item) {
-                response.mazes.push({"mazeno":item.mazeno, "displayName":item.displayName});
-            });
-        }
-        res.status(200).json(response);
+            if(err) return res.status(500).json({"response":"Error occurred"});
+            var response = {"userid":req.params.user, mazes:[]};
+            if(rows)
+            {
+                rows.forEach(function(item) {
+                    response.mazes.push({"mazeno":item.mazeno, "displayName":item.displayName});
+                });
+            }
+            res.status(200).json(response);
+        });
     });
 });
 
