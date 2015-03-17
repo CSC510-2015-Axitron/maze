@@ -208,7 +208,7 @@ var mouseWorkEngine = function(canvas) {
 
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 800; //shortest movement interval (ms)! 
+	var interval = 500; //shortest movement interval (ms)! 
 
 	var mouseDownHook = false, mouseDblClickHook = false, handler;
 	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;

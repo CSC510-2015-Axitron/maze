@@ -144,6 +144,18 @@ CE.defines = function(name) {
 	return a;
 }
 
+//buzz.js mock object
+buzz = {
+	soundFile: '',
+	status: '',
+	isLoop: false
+}
+buzz.isSupported = function() {return true;}
+buzz.sound = function(a) {this.soundFile = a;}
+buzz.sound.prototype.play = function() {buzz.status = "played";}
+buzz.sound.prototype.loop = function() {buzz.isLoop = true;}
+
+
 //JS confirm mock object
 confirm = function(a){return true;}
 
@@ -324,9 +336,14 @@ describe('Maze menu test', function() {
 			assert.equal(AMaze.model.hasPlayerWon(),true);
 		});
 
-		it ('music should play', function() {
+		it ('music should not play', function() {
 
-			assert.equal(Input.Sound.file == '', false);
+			assert.equal(Input.Sound.file == '', true);
+		});
+
+		it ('buzz music should play', function() {
+
+			assert.equal(buzz.status == 'played', true);
 		});
 
 		it ('should process key strokes', function() {
