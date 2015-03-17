@@ -292,7 +292,7 @@ var mouseWorkEngine = function(canvas) {
 				lastY = currY;
 				
 				//trigger movement if dir changes
-				if (currMove != lastMove) {
+				//if (currMove != lastMove) { //commented out for linear acceleration
 
 					clearInterval(handler);
 					handler = 0;
@@ -307,7 +307,7 @@ var mouseWorkEngine = function(canvas) {
 							}
 						}, interval + adj_interval); //avoid overloading!
 					}
-				}
+				//}
 			}
 		}
 	}

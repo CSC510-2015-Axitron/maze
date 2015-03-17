@@ -22,7 +22,6 @@ mazeDirectory =
 }
 
 var mouseAction = {};
-var musicOn = false;
 
 // store data per game!
 var gameData = new function() {
@@ -166,6 +165,39 @@ function userData(initTime){
         }
 }
 
+// Sound wizzard based on buzz.min.js
+var soundWizzard = {
+	
+	isActive: false,
+	currSong: 0,
+	
+	musicFiles: [
+		"sound/Anguish.mp3",
+		"sound/HolFix_Stephen_Page.mp3"
+	],
+
+	soundFiles: {
+
+	},
+
+	playList: [],
+
+	initiate: function() {
+		if (buzz.isSupported()) {
+			this.isActive = true;
+			this.playList.push(new buzz.sound(this.musicFiles[0]));
+		}
+		else this.isActive = false;
+	},
+
+	playMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].play();
+		this.playList[soundWizzard.currSong].loop();
+	}
+
+}
+
 //
 // MouseWork engine, based on HTML5 not Canvas Engine.
 // 1. Instantiate it before use!
@@ -176,7 +208,9 @@ var mouseWorkEngine = function(canvas) {
 
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 800; //shortest movement interval (ms)! 
+	var interval = 500; //shortest movement interval (ms)! 
+	var interval_max = 1000; //max movement interval
+	var accelerator = 3; //mouse accelerator
 
 	var mouseDownHook = false, mouseDblClickHook = false, handler;
 	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;
@@ -236,6 +270,7 @@ var mouseWorkEngine = function(canvas) {
 			var x = Math.abs(offsetX); 
 			var y = Math.abs(offsetY);
 			var currMove;
+			var adj_interval;
 			lastTime = Date.now();
 
 			if(x > threshold || y > threshold)
@@ -245,17 +280,19 @@ var mouseWorkEngine = function(canvas) {
 				if (x > y) {
 					offsetY = 0;
 					if (offsetX > 0) currMove = 2; else currMove = 4; 
+					adj_interval = Math.max(0, (interval_max - interval)*(1- (x-threshold)/accelerator/threshold));
 				}
 				else {
 					offsetX = 0;
 					if (offsetY > 0) currMove = 3; else currMove = 1;
+					adj_interval = Math.max(0, (interval_max - interval)*(1- (y-threshold)/accelerator/threshold));
 				}
 				
 				lastX = currX;
 				lastY = currY;
 				
 				//trigger movement if dir changes
-				if (currMove != lastMove) {
+				//if (currMove != lastMove) { //commented out for linear acceleration
 
 					clearInterval(handler);
 					handler = 0;
@@ -268,9 +305,9 @@ var mouseWorkEngine = function(canvas) {
 								clearInterval(handler);
 								handler = 0;
 							}
-						}, interval); //avoid overloading!
+						}, interval + adj_interval); //avoid overloading!
 					}
-				}
+				//}
 			}
 		}
 	}
@@ -316,10 +353,10 @@ function setGameCanvas(loaded) {
             		trail2: "images/trail_dot2.png",
             		trail3: "images/trail_dot3.png",
             		trail4: "images/trail_dot4.png"
-				},
-				sounds: {
-					theme1: "sound/Anguish.mp3"
 				}
+				//sounds: {
+				//	theme1: "sound/Anguish.mp3"
+				//}
 			},
 			ready: function(stage) {
 
@@ -441,12 +478,6 @@ function setGameCanvas(loaded) {
 
 				this.mazeRenderer.drawMaze();
 
-				//play music
-				if (!musicOn) {
-					musicOn = true;
-					canvas.Sound.playLoop("theme1");
-				}
-
 				//set mouse action
 				mouseAction.setMazeModel(modelTest);
 
@@ -483,6 +514,9 @@ function setGameCanvas(loaded) {
 };
 
 $(function() {
+
+	soundWizzard.initiate();
+	soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
 	currentMazeFile = getNextMaze();
