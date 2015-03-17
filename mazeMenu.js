@@ -22,7 +22,6 @@ mazeDirectory =
 }
 
 var mouseAction = {};
-var musicOn = false;
 
 // store data per game!
 var gameData = new function() {
@@ -164,6 +163,39 @@ function userData(initTime){
         	}
         	else ++counter;
         }
+}
+
+// Sound wizzard based on buzz.min.js
+var soundWizzard = {
+	
+	isActive: false,
+	currSong: 0,
+	
+	musicFiles: [
+		"sound/Anguish.mp3",
+		"sound/HolFix_Stephen_Page.mp3"
+	],
+
+	soundFiles: {
+
+	},
+
+	playList: [],
+
+	initiate: function() {
+		if (buzz.isSupported()) {
+			this.isActive = true;
+			this.playList.push(new buzz.sound(this.musicFiles[1]));
+		}
+		else this.isActive = false;
+	},
+
+	playMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].play();
+		this.playList[soundWizzard.currSong].loop();
+	}
+
 }
 
 //
@@ -316,10 +348,10 @@ function setGameCanvas(loaded) {
             		trail2: "images/trail_dot2.png",
             		trail3: "images/trail_dot3.png",
             		trail4: "images/trail_dot4.png"
-				},
-				sounds: {
-					theme1: "sound/Anguish.mp3"
 				}
+				//sounds: {
+				//	theme1: "sound/Anguish.mp3"
+				//}
 			},
 			ready: function(stage) {
 
@@ -441,12 +473,6 @@ function setGameCanvas(loaded) {
 
 				this.mazeRenderer.drawMaze();
 
-				//play music
-				if (!musicOn) {
-					musicOn = true;
-					canvas.Sound.playLoop("theme1");
-				}
-
 				//set mouse action
 				mouseAction.setMazeModel(modelTest);
 
@@ -483,6 +509,9 @@ function setGameCanvas(loaded) {
 };
 
 $(function() {
+
+	soundWizzard.initiate();
+	soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
 	currentMazeFile = getNextMaze();
