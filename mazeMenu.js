@@ -84,10 +84,10 @@ function updateStatus(maze) {
 		maze.userData.TimerOff(); //stop the timer
 		$("#dsp_score").text(maze.gameData.getScore());
 
-		if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
-		{
+		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
+		//{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-		}
+		//}
 		}, 100);
 	}
 
