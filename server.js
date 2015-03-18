@@ -166,7 +166,6 @@ function userByAttr(attribute, value, done) {
     else done(null, null);
 }
 
-
 //req.headers.authorization is where a login token will be stored if being used
 function auth(req, res, next) {
     if(req.headers.authorization &&
@@ -224,6 +223,14 @@ restapi.set('json spaces', 4);
 
 
 //routes
+
+//to enable cross-origin requests
+restapi.all('*', function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 
 restapi.all('/keepalive', auth, function(req, res) {
     res.status(200).json({"response":true});
@@ -522,7 +529,7 @@ restapi.post("/login", login);
 
 restapi.get("/logout", logout);
 
-restapi.all("/", function(req, res) {
+restapi.all("*", function(req, res) {
     res.status(404).json({"response":"not found"});
 });
 
