@@ -69,6 +69,7 @@ var mysql = require('mysql'),
     NodePbkdf2 = require('node-pbkdf2'),
     uuid = require('node-uuid'),
     express = require('express'),
+    cors = require('cors'),
     bodyParser = require('body-parser'),
     connectionParams = process.env.JAWSDB_URL[process.env.JAWSDB_URL.length-1]==='/'?
         process.env.JAWSDB_URL: process.env.JAWSDB_URL+'/',
@@ -219,18 +220,11 @@ function logout(req, res) {
 }
 
 restapi.use(bodyParser.json());
+restapi.use(cors());
 restapi.set('json spaces', 4);
 
 
 //routes
-
-//to enable cross-origin requests
-restapi.all('*', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-
 
 restapi.all('/keepalive', auth, function(req, res) {
     res.status(200).json({"response":true});
