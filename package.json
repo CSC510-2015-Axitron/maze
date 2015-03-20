@@ -5,7 +5,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "npm run mocha && npm run jshint",
     "mocha": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -u bdd -R spec",
     "jshint": "./node_modules/.bin/jshint . --reporter node_modules/jshint-html-reporter/reporter.js > report.html ;true",
     "jshint-cli": "./node_modules/.bin/jshint . --reporter node_modules/jshint-stylish/stylish.js ;true"
