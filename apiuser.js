@@ -13,6 +13,20 @@ var apiClient = require('./apiClient.js');
 	//console.log(bool);
 //});
 
+var jsobject = {
+  width:2,
+  height:3,
+  start:[0,1],
+  end:[1,2],
+  board:[[6,5,6],[12,1,8]]
+};
+
+//var numMazes;
+//apiClient.getNumMazes(function(resp){
+	//console.log("get numMazes " + resp);
+	//numMazes = resp;
+//});
+
 //These functions do not work sequentially login plus one of the 
 //other functions works perfectly.
 apiClient.login('dummy1@dum.my', 'testpassword1', function(token, uid){
@@ -20,20 +34,20 @@ apiClient.login('dummy1@dum.my', 'testpassword1', function(token, uid){
 	console.log(uid);
 	authToken = token;
 
-	//apiClient.newMaze("Pit", 1, jsobject, authToken, function(resp){
-		//console.log(resp);
-	//})
+	apiClient.newMaze("Pit", 1, jsobject, authToken, function(resp){
+		console.log(resp);
+	})
 
-	//apiClient.editMaze("Pit", 1, jsobject, 18, authToken, function(resp){
+	//apiClient.editMaze("Pit", 1, obj, 1, authToken, function(resp){
 		//console.log(resp);
-	//})
-
+	//});
+	
 	//apiClient.keepAlive(token, function(bool){
 		//console.log(bool);
 	//})
-	apiClient.checkInfo(token, uid, function(uid, email) {
-		console.log(uid, email);
-	});
+	//apiClient.checkInfo(token, uid, function(uid, email) {
+		//console.log(uid, email);
+	//});
 	//apiClient.unameChange("master2", "commander2", token, uid, function(resp){
 		//console.log(resp);
 	//});
@@ -42,11 +56,11 @@ apiClient.login('dummy1@dum.my', 'testpassword1', function(token, uid){
 	//});
 });
 
-/**
-apiClient.getCategories(function(resp){
-	console.log("get categories: " + resp);
-});
 
+apiClient.getCategories(function(resp){
+	console.log(resp);
+});
+/*
 apiClient.getTopTen(0, function(resp){
 	console.log("get top ten " + resp);
 });
@@ -54,11 +68,13 @@ apiClient.getTopTen(0, function(resp){
 apiClient.getNumMazes(function(resp){
 	console.log("get numMazes " + resp);
 });
-
+*/
 
 apiClient.getMazesInCategory(1, function(resp){
-	console.log("get mazes in cat " + resp)
+	console.log(resp);
 });
+
+/*
 
 apiClient.getUserTimes(1, "all", function(resp){
 	console.log("get user times " + resp);
@@ -72,8 +88,7 @@ apiClient.getUserTimes(1, 100, function(resp){
 	console.log("get user times individual " + resp);
 });
 
-
-apiClient.getMaze(1, function(resp){
+apiClient.getMaze(3, function(resp){
 	console.log(resp);
 });
 
@@ -84,11 +99,3 @@ apiClient.getMazesByUser(32, function(resp){
 */
 
 
-
-//var jsobject = {
-  //width:2,
-  //height:3,
-  //start:[0,1],
-  //end:[1,2],
-  //board:[[6,5,6],[12,1,8]]
-//}

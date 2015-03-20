@@ -1,4 +1,6 @@
 var AMaze = AMaze || {};
+
+
 AMaze.model = {
 	//Maze constructor
 	N_CONST:1,E_CONST:2,S_CONST:4,W_CONST:8,
@@ -50,15 +52,17 @@ AMaze.model = {
 	},
 	//loads JSON data from disk (same filesystem as stored on)
 	//calls func on success with loaded maze as param
-	load: function(filename, func) {
-		$.getJSON( filename, {}, function( data ) {
+	load: function(num, func) {
+		apiClient.getMaze(num, function( data ) {
+			console.log(data);
 			var load = new AMaze.model.Maze();
 			load.width = data.width;
 			load.height = data.height;
-			load.start = data.start;
-			load.currPos = [data.start[0], data.start[1]];
-			load.end = data.end;
-			load.board = data.board;
+			var ps = JSON.parse(data.mazeJSON);
+			load.start = ps.start;
+			load.currPos = [ps.start[0], ps.start[1]];
+			load.end = ps.end;
+			load.board = ps.board;
 			func(load);
 		});
 	}

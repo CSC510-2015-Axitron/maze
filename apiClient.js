@@ -22,26 +22,30 @@ var apiClient = this;
  * }
  * - mazeno: number of the maze to be edited
  * - token: user authorization token
- * - func: callback returns new maze number if successful
- *   otherwise returns null.
+ * - func: callback returns maze updated if successful,
+ *   not authorized otherwise.
  *	
  */
 apiClient.editMaze = function(nm, catNum, mapBlock, mazeNo, token, func){
 	var data = JSON.stringify({
 		name: nm, 
 		category: catNum,
-		maze: jsobject
+		maze: mapBlock
 	});
 	client = rest.wrap(pathPrefix, { prefix: 'http://axemaze-db.herokuapp.com'});
 	var p = "maze/" + mazeNo;
 	var request = { path: p, method:'POST', entity: data, headers: {'Content-Type': 'application/json', 'authorization': token}};
 	client(request).then(function(response){
 		var ps = JSON.parse(response.entity);
+		func(ps.response);
+
+		/**
 		if(ps.response === "maze updated"){
 			func(true);
 		}else{
 			func(false);
 		}
+		*/
 	});
 }
 
@@ -68,7 +72,7 @@ apiClient.newMaze = function(nm, catNum, mapBlock, token, func){
 	var data = JSON.stringify({
 		name: nm, 
 		category: catNum,
-		maze: jsobject
+		maze: mapBlock
 	});
 	client = rest.wrap(pathPrefix, { prefix: 'http://axemaze-db.herokuapp.com'});
 	var p = "maze";

@@ -574,7 +574,7 @@ $(function() {
 	currentMazeFile = getNextMaze();
 
 	//not testing the model here, assume it works
-	AMaze.model.load(currentMazeFile, setGameCanvas);
+	AMaze.model.load(13, setGameCanvas);
 
 	$(window).on('keydown', function(e) {
 		if([32,37,38,39,40].indexOf(e.keyCode) > -1) {
