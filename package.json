@@ -13,6 +13,7 @@
   "author": "Matthew Neal",
   "license": "ISC",
   "devDependencies": {
+    "browserify": "^9.0.3",
     "chai": "*",
     "istanbul": "*",
     "jquery": "*",

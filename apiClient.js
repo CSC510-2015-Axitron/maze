@@ -333,13 +333,12 @@ apiClient.login = function(em, pw, func) {
 	var request = { path: "login", method:'POST', 
 				entity: data, headers: {'Content-Type': 'application/json'}};
 	client(request).then(function(response) {
-		console.log("response entity " + response.entity);
-		if(response.entity != null){
-			var ps = JSON.parse(response.entity);
-			var tk = ps.token;
-			var uid = ps.userid;
-			if(tk.length == 36)
-				func(tk,uid);
+		//console.log("response entity " + response.entity);
+		var ps = JSON.parse(response.entity);
+		var tk = ps.token;
+		var uid = ps.userid;
+		if(ps.token != null){
+			func(tk,uid);
 		}else{
 			func(null);
 		}
