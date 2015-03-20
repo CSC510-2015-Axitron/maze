@@ -154,6 +154,8 @@ buzz.isSupported = function() {return true;}
 buzz.sound = function(a) {this.soundFile = a;}
 buzz.sound.prototype.play = function() {buzz.status = "played";}
 buzz.sound.prototype.loop = function() {buzz.isLoop = true;}
+buzz.sound.prototype.stop = function() {buzz.status = "stopped";}
+buzz.sound.prototype.pause = function() {buzz.status = "paused";}
 
 
 //JS confirm mock object
@@ -280,7 +282,7 @@ describe('Maze menu test', function() {
 
 	describe('When player wins', function() {
 
-		it ('window should pop up', function() {
+		it ('window should pop up if enabled', function() {
 
 			AMaze.model.hasPlayerWon = function() {return 1;}
 
@@ -336,7 +338,7 @@ describe('Maze menu test', function() {
 			assert.equal(AMaze.model.hasPlayerWon(),true);
 		});
 
-		it ('music should not play', function() {
+		it ('Canvas music should not play', function() {
 
 			assert.equal(Input.Sound.file == '', true);
 		});
@@ -409,6 +411,58 @@ describe('Maze menu test', function() {
 			assert.equal(stage.result,true);
 		});
 
+	});
+
+	describe('soundWizzard Test', function() {
+
+		describe('when browser does not support sound', function() {
+
+			before(function() {
+				buzz.isSupported = function() {return false;}
+				buzz.status = '';
+				menu.soundWizzard.initiate();
+			});
+
+			it('sound feature should be disabled', function() {
+				assert.equal(menu.soundWizzard.isActive,false);
+			});
+
+			it('should not play music', function() {
+
+				menu.soundWizzard.playMusic();
+				assert.equal(buzz.status == '',true);
+			});
+
+			it('stopMusic() function should have no effect', function() {
+
+				menu.soundWizzard.stopMusic();
+				assert.equal(buzz.status == '',true);
+			});
+
+			it('pauseMusic() function should have no effect', function() {
+
+				menu.soundWizzard.pauseMusic();
+				assert.equal(buzz.status == '',true);
+			});
+		});
+
+		describe('when browser supports sound', function() {
+			before(function() {
+				buzz.isSupported = function() {return true;}
+				buzz.status = '';
+				menu.soundWizzard.initiate();
+			});
+
+			it('Buzz sound engine should be on', function() {
+				assert.equal(menu.soundWizzard.isActive,true);
+			});
+
+			it('pauseMusic() function should pause music', function() {
+				menu.soundWizzard.playMusic();
+				menu.soundWizzard.pauseMusic();
+				assert.equal(buzz.status == 'paused',true);
+			});
+		});
 	});
 
 

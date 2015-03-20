@@ -245,7 +245,7 @@ var soundWizzard = {
 	},
 
 	playObstacle: function() {
-		
+
 	}
 
 }
@@ -614,4 +614,5 @@ if (typeof exports !== 'undefined'){
 	module.exports.userData = userData;
 	module.exports.setGameCanvas = setGameCanvas;
 	module.exports.gameData = gameData;
+	module.exports.soundWizzard = soundWizzard;
 }
