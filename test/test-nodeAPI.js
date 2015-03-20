@@ -1,18 +1,18 @@
-var assert = require("chai").assert,
-    apiClient = require('../apiClient.js');
+var assert = require("chai").assert;
+var apiClient = require('../apiClient.js');
 
-
+console.log("we are here");
 
 describe('API TESTS', function() {
     describe('login/logout', function() {
         var token, userid;
-        describe('should not login with bad credentials', function(done) {
+        it('should not login with bad credentials', function(done) {
             apiClient.login('asdf', 'herp', function(result) {
                 assert.equal(result, null, 'result null');
                 done();
             });
         });
-        describe('should login correctly', function(done) {
+        it('should login correctly', function(done) {
             apiClient.login('dummy1@dum.my', 'testpassword1', function(tok, uid) {
                 token = tok;
                 userid = uid;
