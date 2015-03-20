@@ -15,10 +15,10 @@ var apiClient = require('./apiClient.js');
 
 //These functions do not work sequentially login plus one of the 
 //other functions works perfectly.
-//apiClient.login("master", "commander", function(token, uid){
-	//console.log(token);
-	//console.log(uid);
-	//authToken = token;
+apiClient.login('dummy1@dum.my', 'testpassword1', function(token, uid){
+	console.log(token);
+	console.log(uid);
+	authToken = token;
 
 	//apiClient.newMaze("Pit", 1, jsobject, authToken, function(resp){
 		//console.log(resp);
@@ -31,18 +31,18 @@ var apiClient = require('./apiClient.js');
 	//apiClient.keepAlive(token, function(bool){
 		//console.log(bool);
 	//})
-	//apiClient.checkInfo(token, uid, function(uid, email) {
-		//console.log(uid, email);
-	//});
+	apiClient.checkInfo(token, uid, function(uid, email) {
+		console.log(uid, email);
+	});
 	//apiClient.unameChange("master2", "commander2", token, uid, function(resp){
 		//console.log(resp);
 	//});
 	//apiClient.logout(authToken, function(resp){
 		//console.log(resp);
 	//});
-//});
+});
 
-
+/**
 apiClient.getCategories(function(resp){
 	console.log("get categories: " + resp);
 });
@@ -54,6 +54,7 @@ apiClient.getTopTen(0, function(resp){
 apiClient.getNumMazes(function(resp){
 	console.log("get numMazes " + resp);
 });
+
 
 apiClient.getMazesInCategory(1, function(resp){
 	console.log("get mazes in cat " + resp)
@@ -71,14 +72,16 @@ apiClient.getUserTimes(1, 100, function(resp){
 	console.log("get user times individual " + resp);
 });
 
-apiClient.getMaze(13, function(resp){
-	console.log("get maze " + resp);
+
+apiClient.getMaze(1, function(resp){
+	console.log(resp);
 });
 
 
 apiClient.getMazesByUser(32, function(resp){
 	console.log("get mazes by user " + resp);
 });
+*/
 
 
 
