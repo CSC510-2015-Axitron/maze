@@ -82,7 +82,7 @@ db.connect();
 //{token:{userid:(id), validUntil:(date)}}
 var tokens = {},
     port = process.env.PORT || 8080,
-    debug = true;
+    debug = false;
 
 setInterval(function(){
     var now = new Date();
