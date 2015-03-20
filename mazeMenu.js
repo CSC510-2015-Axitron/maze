@@ -80,15 +80,19 @@ function updateStatus(maze) {
 
 	if (maze.hasPlayerWon()) {
 
+		soundWizzard.stopMusic();
+		soundWizzard.playWinner();
+
 		setTimeout(function() {
-		maze.userData.TimerOff(); //stop the timer
-		$("#dsp_score").text(maze.gameData.getScore());
+			maze.userData.TimerOff(); //stop the timer
+			$("#dsp_score").text(maze.gameData.getScore());
 
 		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
 		//{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
+			soundWizzard.playMusic();
 		//}
-		}, 100);
+		}, soundWizzard.winnerPause);
 	}
 
 	maze.userData.keepStep();
@@ -173,11 +177,13 @@ var soundWizzard = {
 	
 	musicFiles: [
 		"sound/Anguish.mp3",
-		"sound/HolFix_Stephen_Page.mp3"
+		"sound/Mellowtron.mp3"
 	],
 
 	soundFiles: {
-
+		intro: ["sound/intro.mp3", 1000],
+		winner: ["sound/winner.mp3", 4214],
+		finale: ""
 	},
 
 	playList: [],
@@ -185,15 +191,61 @@ var soundWizzard = {
 	initiate: function() {
 		if (buzz.isSupported()) {
 			this.isActive = true;
-			this.playList.push(new buzz.sound(this.musicFiles[0]));
+			this.playList.push(new buzz.sound(this.musicFiles[1]));
 		}
 		else this.isActive = false;
+
+		if (this.soundFiles.intro != "") {
+				this.intro = new buzz.sound(this.soundFiles.intro[0], {preload: true});
+				this.introPause = this.soundFiles.intro[1];
+		}
+
+		if (this.soundFiles.winner != "") {
+				this.winner = new buzz.sound(this.soundFiles.winner[0], {preload: true, volumne: 50}); //volumne doesn't work on some browsers
+				this.winnerPause = this.soundFiles.winner[1];
+		}
+		
+		if (this.soundFiles.finale != "") {
+				this.finale = new buzz.sound(this.soundFiles.finale[0], {preload: true});
+				this.finalePause = this.soundFiles.finale[1];
+		}
+		
 	},
 
 	playMusic: function() {
 		if (!this.isActive) return;
 		this.playList[soundWizzard.currSong].play();
 		this.playList[soundWizzard.currSong].loop();
+	},
+
+	stopMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].stop();
+	},
+
+	pauseMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].pause();
+	},
+
+	playIntro: function() {
+		if (this.intro !== undefined) this.intro.play();
+	},
+
+	playWinner: function() {
+		if (this.winner !== undefined) this.winner.play();
+	},
+
+	playfinale: function() {
+		if (this.finale !== undefined) this.finale.play();
+	},
+
+	playStep: function() {
+
+	},
+
+	playObstacle: function() {
+		
 	}
 
 }
