@@ -21,6 +21,7 @@ mazeDirectory =
 	'huge': []
 }
 
+var inputLock = false; //input device lock
 var mouseAction = {};
 
 // store data per game!
@@ -83,6 +84,7 @@ function updateStatus(maze) {
 		soundWizzard.stopMusic();
 		soundWizzard.playWinner();
 		maze.userData.TimerOff(); //stop the timer
+		inputLock = mouseAction.inputLock = true; //lock input device
 
 		setTimeout(function() {
 			
@@ -92,6 +94,7 @@ function updateStatus(maze) {
 		//{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
 			soundWizzard.playMusic();
+			inputLock = mouseAction.inputLock = false; //unlock input device
 		//}
 		}, soundWizzard.winnerPause);
 	}
@@ -277,6 +280,7 @@ var soundWizzard = {
 //
 var mouseWorkEngine = function(canvas) {
 
+	this.inputLock = false; //input device lock
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
 	var interval = 500; //shortest movement interval (ms)! 
@@ -300,6 +304,7 @@ var mouseWorkEngine = function(canvas) {
 	function moveMaze(a) {
 		//console.log(offsetX, offsetY);
 
+		if (this.inputLock) return false;
 		var flag = true;
 
 		//recalibrate mouse center if move fail
@@ -558,19 +563,19 @@ function setGameCanvas(loaded) {
 				resetStatus();
 
 				canvas.Input.keyUp(Input.Up, function(e) {
-					if (modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					if (!inputLock && modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Bottom, function(e) {
-					if (modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					if (!inputLock && modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Left, function(e) {
-					if (modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					if (!inputLock && modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Right, function(e) {
-					if (modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					if (!inputLock && modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 			},
 			render: function(stage) {
