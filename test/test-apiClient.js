@@ -22,7 +22,7 @@ describe('APICLIENT TESTS', function() {
             });
         });
         it('Should get an existing maze', function(done) {
-            apiClient.getMaze(1, function(resp) {
+            apiClient.getMaze(19, function(resp) {
                 assert.ok(resp, 'response not null');
                 assert.ok(resp.mazeno, 'mazeno not null');
                 assert.notOk(resp.userForMaze, 'userForMaze not null');
@@ -31,7 +31,7 @@ describe('APICLIENT TESTS', function() {
                 assert.ok(resp.width, 'width not null');
                 assert.ok(resp.mazeJSON, 'mazeJSON not null');
                 assert.ok(resp.category, 'category not null');
-                assert.equal(resp.mazeno, 1, 'mazeno same as expected');
+                assert.equal(resp.mazeno, 19, 'mazeno same as expected');
                 done();
             });
         });
