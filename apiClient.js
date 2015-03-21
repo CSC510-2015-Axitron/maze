@@ -30,7 +30,7 @@ apiClient.editMaze = function(nm, catNum, mapBlock, mazeNo, token, func){
 	var data = JSON.stringify({
 		name: nm, 
 		category: catNum,
-		maze: jsobject
+		maze: mapBlock
 	});
 	client = rest.wrap(pathPrefix, { prefix: 'http://axemaze-db.herokuapp.com'});
 	var p = "maze/" + mazeNo;
@@ -68,7 +68,7 @@ apiClient.newMaze = function(nm, catNum, mapBlock, token, func){
 	var data = JSON.stringify({
 		name: nm, 
 		category: catNum,
-		maze: jsobject
+		maze: mapBlock
 	});
 	client = rest.wrap(pathPrefix, { prefix: 'http://axemaze-db.herokuapp.com'});
 	var p = "maze";
