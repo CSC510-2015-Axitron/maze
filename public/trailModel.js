@@ -148,7 +148,7 @@ trailModel.create.prototype.makeTrailV2 = function(canvas, pos, cellSize, theEng
                         if (value == 1)
                         {
                                 ctx.clearRect(this.lastDot.x*dx+dx/2-8, this.lastDot.y*dy+dy/2-8, 20, 20);
-                                ctx.drawImage(theEngine.Materials.get("trail2"), this.lastDot.x*dx+dx/2-16, this.lastDot.y*dy+dy/2-16);
+                                ctx.drawImage(theEngine.Materials.get("trail4"), this.lastDot.x*dx+dx/2-16, this.lastDot.y*dy+dy/2-16);
                         }
 
                 }

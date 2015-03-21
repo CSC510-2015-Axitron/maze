@@ -80,17 +80,23 @@ function updateStatus(maze) {
 
 	if (maze.hasPlayerWon()) {
 
-		setTimeout(function() {
+		soundWizzard.stopMusic();
+		soundWizzard.playWinner();
 		maze.userData.TimerOff(); //stop the timer
-		$("#dsp_score").text(maze.gameData.getScore());
 
-		if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
-		{
+		setTimeout(function() {
+			
+			$("#dsp_score").text(maze.gameData.getScore());
+
+		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
+		//{
 			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-		}
-		}, 100);
+			soundWizzard.playMusic();
+		//}
+		}, soundWizzard.winnerPause);
 	}
 
+	soundWizzard.playStep();
 	maze.userData.keepStep();
 	$("#dsp_steps").text(maze.userData.step);
 
@@ -173,11 +179,16 @@ var soundWizzard = {
 	
 	musicFiles: [
 		"sound/Anguish.mp3",
-		"sound/HolFix_Stephen_Page.mp3"
+		"sound/Mellowtron.mp3"
 	],
 
+	//[filename, duration in ms]
 	soundFiles: {
-
+		intro: ["sound/intro.mp3", 1000],
+		winner: ["sound/winner.mp3", 4214],
+		step: ["sound/step.mp3", 470],
+		block: ["sound/nogo.mp3", 287],
+		finale: ""
 	},
 
 	playList: [],
@@ -185,15 +196,75 @@ var soundWizzard = {
 	initiate: function() {
 		if (buzz.isSupported()) {
 			this.isActive = true;
-			this.playList.push(new buzz.sound(this.musicFiles[0]));
+			this.playList.push(new buzz.sound(this.musicFiles[1]));
 		}
 		else this.isActive = false;
+
+		if (this.soundFiles.intro != "") {
+				this.intro = new buzz.sound(this.soundFiles.intro[0], {preload: true});
+				this.introPause = this.soundFiles.intro[1];
+		}
+
+		if (this.soundFiles.winner != "") {
+				this.winner = new buzz.sound(this.soundFiles.winner[0], {preload: true, volumne: 90}); //volumne doesn't work on some browsers
+				this.winnerPause = this.soundFiles.winner[1];
+		}
+
+		if (this.soundFiles.step != "") {
+				this.step = new buzz.sound(this.soundFiles.step[0], {preload: true, volumne: 90}); //volumne doesn't work on some browsers
+				this.stepPause = this.soundFiles.step[1];
+		}
+
+		if (this.soundFiles.block != "") {
+				this.block = new buzz.sound(this.soundFiles.block[0], {preload: true, volumne: 90}); //volumne doesn't work on some browsers
+				this.blockPause = this.soundFiles.block[1];
+		}
+		
+		if (this.soundFiles.finale != "") {
+				this.finale = new buzz.sound(this.soundFiles.finale[0], {preload: true});
+				this.finalePause = this.soundFiles.finale[1];
+		}
+		
 	},
 
 	playMusic: function() {
 		if (!this.isActive) return;
 		this.playList[soundWizzard.currSong].play();
 		this.playList[soundWizzard.currSong].loop();
+	},
+
+	stopMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].stop();
+	},
+
+	pauseMusic: function() {
+		if (!this.isActive) return;
+		this.playList[soundWizzard.currSong].pause();
+	},
+
+	playIntro: function() {
+		if (this.intro !== undefined) this.intro.play();
+	},
+
+	playWinner: function() {
+		if (this.winner !== undefined) this.winner.play();
+	},
+
+	playfinale: function() {
+		if (this.finale !== undefined) this.finale.play();
+	},
+
+	playStep: function() {
+		if (this.step !== undefined) {
+			this.step.play();
+		}
+	},
+
+	playObstacle: function() {
+		if (this.block !== undefined) {
+			this.block.play();
+		}
 	}
 
 }
@@ -487,19 +558,19 @@ function setGameCanvas(loaded) {
 				resetStatus();
 
 				canvas.Input.keyUp(Input.Up, function(e) {
-					if (modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest);
+					if (modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Bottom, function(e) {
-					if (modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest);
+					if (modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Left, function(e) {
-					if (modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest);
+					if (modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 
 				canvas.Input.keyUp(Input.Right, function(e) {
-					if (modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest);
+					if (modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 				});
 			},
 			render: function(stage) {
@@ -562,4 +633,5 @@ if (typeof exports !== 'undefined'){
 	module.exports.userData = userData;
 	module.exports.setGameCanvas = setGameCanvas;
 	module.exports.gameData = gameData;
+	module.exports.soundWizzard = soundWizzard;
 }
