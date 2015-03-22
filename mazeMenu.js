@@ -45,11 +45,11 @@ var remoteDB = {
 	currMazeObj: {},		// url/maze/:id
 	
 	HTTPGet: function(path) {
-		return $.ajax({
+		return JSON.parse($.ajax({
 			type: "GET",
 			url: this.url+path,
 			async: false,
-		}).responseText;
+		}).responseText);
 
 	},
 	HTTPGetAsync: function(path, func) {
@@ -64,33 +64,19 @@ var remoteDB = {
 	initiate: function() {
 		
 		//console.log("1. categories: "+haha);
-		this.categories = JSON.parse(this.HTTPGet("/categories"));
+		this.categories = this.HTTPGet("/categories");
 
 		//console.log("2. count :"+haha); //total mazes
-		this.mazeTotal = JSON.parse(this.HTTPGet("/mazes")).mazes;
+		this.mazeTotal = this.HTTPGet("/mazes").mazes;
 
-		//console.log("3. mazes/category/small :"+haha);
-		this.mazeCategory[0] = JSON.parse(this.HTTPGet("/mazes/category/1"));
+		//load first level
+		this.mazeCategory[0] = this.HTTPGet("/mazes/category/1");
 
+		//shold load the flowlling usig async method calls but leave them as for
+		this.mazeCategory[1] = this.HTTPGet("/mazes/category/101");
+		this.mazeCategory[2] = this.HTTPGet("/mazes/category/201");
+		this.mazeCategory[3] = this.HTTPGet("/mazes/category/301");
 
-		//console.log("3. mazes/category/small :"+haha);
-		this.HTTPGetAsync("/mazes/category/101", function(e){this.mazeCategory[1] = JSON.parse(e);});
-
-		var haha = $.ajax({
-			type: "GET",
-			url: this.url+"/mazes/category/201",
-			async: false,
-		}).responseText;
-		//console.log("3. mazes/category/small :"+haha);
-		this.mazeCategory[2] = JSON.parse(haha);
-
-		var haha = $.ajax({
-			type: "GET",
-			url: this.url+"/mazes/category/301",
-			async: false,
-		}).responseText;
-		//console.log("3. mazes/category/small :"+haha);
-		this.mazeCategory[3] = JSON.parse(haha);
 
 		this.firstMazeNo = this.mazeCategory[currentLevel].mazes[0].mazeno;
 		
@@ -100,15 +86,10 @@ var remoteDB = {
 
 		++currentMaze;
 
-		if (currentMaze >= this.mazeTotal) return {};
+		if (currentMaze >= this.mazeTotal) currentMaze = 0; //Final winning thing goes here!
 
-		var haha = $.ajax({
-			type: "GET",
-			url: this.url+"/maze/"+(currentMaze+this.firstMazeNo).toString(),
-			async: false,
-		}).responseText;
-		var obj;
-		this.currentMaze = JSON.parse((obj = JSON.parse(haha)).mazeJSON);
+		var obj = this.HTTPGet("/maze/"+(currentMaze+this.firstMazeNo).toString());
+		this.currentMaze = JSON.parse(obj.mazeJSON);
 		currentMazeFile = obj.displayName;
 		
 		//console.log("3. got maze 19 string "+haha)
