@@ -21,8 +21,100 @@ mazeDirectory =
 	'huge': []
 }
 
+var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
+
+//
+// Unified interface for remote DB
+// - built-in cache DB simply mirros the remote DB
+// - built-in session control
+//
+var remoteDB = {
+	user: "anonymous",
+	pass: "",
+	sectionTimestamp: 0,
+	isLogon: false,
+	url: "http://axemaze-db.herokuapp.com",
+
+	categories: [], 		// url/categories
+	mazeCategory: [,,,],    // url/mazes/category/:id
+	mazeTotal: 0,			// url/mazes
+
+	firstMazeNo: 0,			// first mazeno
+	currMazeObj: {},		// url/maze/:id
+	
+	HTTPGet: function(path) {
+		return $.ajax({
+			type: "GET",
+			url: this.url+path,
+			async: false,
+		}).responseText;
+
+	},
+	HTTPGetAsync: function(path, func) {
+		$.ajax({
+			type: "GET",
+			url: this.url+path,
+			success: function(data) {func(data);},
+			error: function(req, status, e) {console.log(req.status, req.responseText, status, e);}
+		});
+	},	
+
+	initiate: function() {
+		
+		//console.log("1. categories: "+haha);
+		this.categories = JSON.parse(this.HTTPGet("/categories"));
+
+		//console.log("2. count :"+haha); //total mazes
+		this.mazeTotal = JSON.parse(this.HTTPGet("/mazes")).mazes;
+
+		//console.log("3. mazes/category/small :"+haha);
+		this.mazeCategory[0] = JSON.parse(this.HTTPGet("/mazes/category/1"));
+
+
+		//console.log("3. mazes/category/small :"+haha);
+		this.HTTPGetAsync("/mazes/category/101", function(e){this.mazeCategory[1] = JSON.parse(e);});
+
+		var haha = $.ajax({
+			type: "GET",
+			url: this.url+"/mazes/category/201",
+			async: false,
+		}).responseText;
+		//console.log("3. mazes/category/small :"+haha);
+		this.mazeCategory[2] = JSON.parse(haha);
+
+		var haha = $.ajax({
+			type: "GET",
+			url: this.url+"/mazes/category/301",
+			async: false,
+		}).responseText;
+		//console.log("3. mazes/category/small :"+haha);
+		this.mazeCategory[3] = JSON.parse(haha);
+
+		this.firstMazeNo = this.mazeCategory[currentLevel].mazes[0].mazeno;
+		
+	},
+
+	getNextMaze: function() {
+
+		++currentMaze;
+
+		if (currentMaze >= this.mazeTotal) return {};
+
+		var haha = $.ajax({
+			type: "GET",
+			url: this.url+"/maze/"+(currentMaze+this.firstMazeNo).toString(),
+			async: false,
+		}).responseText;
+		var obj;
+		this.currentMaze = JSON.parse((obj = JSON.parse(haha)).mazeJSON);
+		currentMazeFile = obj.displayName;
+		
+		//console.log("3. got maze 19 string "+haha)
+		return this.currentMaze;
+	}
+}
 
 // store data per game!
 var gameData = new function() {
@@ -92,7 +184,9 @@ function updateStatus(maze) {
 
 		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
 		//{
-			AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
+			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
+			else AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
+
 			soundWizzard.playMusic();
 			inputLock = mouseAction.inputLock = false; //unlock input device
 		//}
@@ -591,14 +685,24 @@ function setGameCanvas(loaded) {
 
 $(function() {
 
+
 	soundWizzard.initiate();
-	soundWizzard.playMusic();
+	//soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
-	currentMazeFile = getNextMaze();
 
-	//not testing the model here, assume it works
-	AMaze.model.load(currentMazeFile, setGameCanvas);
+	if (localDB)
+	{
+		currentMazeFile = getNextMaze();
+
+		//not testing the model here, assume it works
+		AMaze.model.load(currentMazeFile, setGameCanvas);
+	}
+	else
+	{
+		remoteDB.initiate();
+		AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
+	}
 
 	$(window).on('keydown', function(e) {
 		if([32,37,38,39,40].indexOf(e.keyCode) > -1) {

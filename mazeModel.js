@@ -61,6 +61,17 @@ AMaze.model = {
 			load.board = data.board;
 			func(load);
 		});
+	},
+	//inject maze object into AMaze.model.Maze()
+	inject: function(data, func) {
+		var load = new AMaze.model.Maze();
+			load.width = data.width;
+			load.height = data.height;
+			load.start = data.start;
+			load.currPos = [data.start[0], data.start[1]];
+			load.end = data.end;
+			load.board = data.board;
+			func(load);
 	}
 };
 

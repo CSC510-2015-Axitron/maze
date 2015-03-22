@@ -74,6 +74,11 @@ $.getJSON = function(filename, options, func) {
         var obj = require(filename);        
         func(obj);
 }
+$.ajax = function(obj) {
+		//don't do anything on obj for now
+		var httpObj = {responseText: '{"response": "http content"}'};
+		return httpObj;
+}
 
 //Amaze model mock object
 AMaze = {};
