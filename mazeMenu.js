@@ -39,7 +39,7 @@ var remoteDB = {
 	mazeCategory: [,,,],    // url/mazes/category/:id
 	mazeTotal: 0,			// url/mazes
 
-	firstMazeNo: 0,			// first mazeno
+	currMazeID: 0,			// current maze ID
 	currMazeObj: {},		// url/maze/:id
 	
 	HTTPGet: function(path) {
@@ -71,11 +71,10 @@ var remoteDB = {
 		this.mazeCategory[0] = this.HTTPGet("/mazes/category/1");
 
 		//use async AJAX to load the rest of categories
-		this.HTTPGetAsync("/mazes/category/101", function(e){remoteDB.mazeCategory[1] = e;});
-		this.HTTPGetAsync("/mazes/category/201", function(e){remoteDB.mazeCategory[2] = e;});
-		this.HTTPGetAsync("/mazes/category/301", function(e){remoteDB.mazeCategory[3] = e;});
-
-		this.firstMazeNo = this.mazeCategory[currentLevel].mazes[0].mazeno;
+		for (var i = 1; i < this.categories.length; ++i)
+		{
+			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[i] = e;});
+		}
 		
 	},
 
@@ -83,9 +82,32 @@ var remoteDB = {
 
 		++currentMaze;
 
-		if (currentMaze >= this.mazeTotal) currentMaze = 0; //Final winning thing goes here!
+		if (currentMaze >= this.mazeTotal)
+		{
+			//Final winning thing goes here!
+			this.currMazeID = this.mazeCategory[currentLevel = 0].mazes[currentMaze = 0].mazeno;
+		}
+		else
+		{
 
-		var obj = this.HTTPGet("/maze/"+(currentMaze+this.firstMazeNo).toString());
+			var notFound = true;
+			var count = 0;
+
+			// Do not check integrity of remote DB here!
+			while (notFound) {
+				for (var i = 0; i < currentLevel; ++i) {
+					count += this.mazeCategory[i].mazes.length;
+				}
+
+				if (currentMaze < count + this.mazeCategory[currentLevel].mazes.length) {
+					this.currMazeID = this.mazeCategory[currentLevel].mazes[currentMaze - count].mazeno;;
+					notFound = false;
+				}
+				else ++currentLevel;
+			}
+		}
+
+		var obj = this.HTTPGet("/maze/"+this.currMazeID.toString());
 		this.currentMaze = JSON.parse(obj.mazeJSON);
 		currentMazeFile = obj.displayName;
 		
