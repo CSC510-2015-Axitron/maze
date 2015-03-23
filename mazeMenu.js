@@ -70,11 +70,10 @@ var remoteDB = {
 		//load first level
 		this.mazeCategory[0] = this.HTTPGet("/mazes/category/1");
 
-		//should load the flowlling usig async method calls but leave them as for
-		this.mazeCategory[1] = this.HTTPGet("/mazes/category/101");
-		this.mazeCategory[2] = this.HTTPGet("/mazes/category/201");
-		this.mazeCategory[3] = this.HTTPGet("/mazes/category/301");
-
+		//use async AJAX to load the rest of categories
+		this.HTTPGetAsync("/mazes/category/101", function(e){remoteDB.mazeCategory[1] = e;});
+		this.HTTPGetAsync("/mazes/category/201", function(e){remoteDB.mazeCategory[2] = e;});
+		this.HTTPGetAsync("/mazes/category/301", function(e){remoteDB.mazeCategory[3] = e;});
 
 		this.firstMazeNo = this.mazeCategory[currentLevel].mazes[0].mazeno;
 		
