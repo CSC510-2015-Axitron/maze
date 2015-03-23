@@ -235,10 +235,14 @@ function logout(req, res) {
 }
 
 //to get a seedable random function
-Math.seed = function(s) {
+seedRandom = function(s) {
     return function() {
         s = Math.sin(s) * 10000; return s - Math.floor(s);
     };
+};
+
+Array.prototype.peek = function() {
+    return this[this.length-1];
 };
 
 var N_CONST = 1,
@@ -249,33 +253,74 @@ var N_CONST = 1,
 //methods to generate a maze algorithmically
 //all take width, height, seed
 //all return {seed:(seed), maze:(complete maze)}
-function genRecursiveBacktracer (width, height, seed)
+function genRecursiveBacktracker (width, height, seed)
 {
-    var ret = {"seed":seed || Math.floor(Math.random() * 50000)},
-    myRandom = Math.seed(ret.seed),
+    var ret = {"seed":(seed || Math.floor(Math.random() * 50000))},
+    myRandom = seedRandom(ret.seed),
     stack = [],
-    mapData = [];
+    maze = {"width":width,"height":height, board:[]};
     for( var x = width; x--; )
     {
-        mapData.push([]);
+        maze.board.push([]);
         for( var y = height; y--; )
         {
-            mapData[this.width-x-1].push(0);
+            maze.board[width-x-1].push(0);
         }
     }
-    
-    
+    //this algorithm always starts at one of the corners and ends in the opposite corner
+    //just because I said so
+    maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)];
+    maze.end = [(width-1)-maze.start[0], (height-1)-maze.start[1]];
+
+    stack.push(maze.start);
+    while(stack.length > 0) {
+        var validSpots = [], dirs=[], antidirs = [], currSpot = stack.peek();
+        if(currSpot[0]-1 >= 0 && maze.board[currSpot[0]-1][currSpot[1]] == 0) //w
+        {
+            validSpots.push([currSpot[0]-1, currSpot[1]]);
+            dirs.push(W_CONST);
+            antidirs.push(E_CONST);
+        }
+        if(currSpot[1]-1 >= 0 && maze.board[currSpot[0]][currSpot[1]-1] == 0) //n
+        {
+            validSpots.push([currSpot[0], currSpot[1]-1]);
+            dirs.push(N_CONST);
+            antidirs.push(S_CONST);
+        }
+        if(currSpot[0]+1 < width && maze.board[currSpot[0]+1][currSpot[1]] == 0) //e
+        {
+            validSpots.push([currSpot[0]+1, currSpot[1]]);
+            dirs.push(E_CONST);
+            antidirs.push(W_CONST);
+        }
+        if(currSpot[1]+1 < height && maze.board[currSpot[0]][currSpot[1]+1] == 0) //s
+        {
+            validSpots.push([currSpot[0], currSpot[1]+1]);
+            dirs.push(S_CONST);
+            antidirs.push(N_CONST);
+        }
+        
+        if(validSpots.length == 0) stack.pop();
+        else
+        {
+            var idx = Math.floor(myRandom() * validSpots.length);
+            stack.push(validSpots[idx]);
+            maze.board[currSpot[0]][currSpot[1]] |= dirs[idx];
+            maze.board[validSpots[idx][0]][validSpots[idx][1]] |= antidirs[idx];
+        }
+    }
+    ret.maze = maze;
+    return ret;
 }
+
+var algorithms = {
+    "recursivebacktracking":genRecursiveBacktracker
+};
 
 //algorithm is guaranteed to be one of the registered algorithms
 function genMaze(algorithm, seed, width, height) {
     var mazeReturn = {"algorithm":algorithm},
-    ret = {};
-    switch(algorithm) {
-        case recursive_backtracer:
-            ret = genRecursiveBacktracer(width, height, seed);
-        break;
-    }
+    ret = algorithms[algorithm](width, height, seed);
     mazeReturn.seed = ret.seed;
     mazeReturn.maze = ret.maze;
     return mazeReturn;
@@ -514,6 +559,44 @@ restapi.get('/maze/:mazeno', function(req, res){
 		if(!(row && row[0] && row[0].mazeno != null)) return res.status(404).json({"response":"maze not found","query":req.params.mazeno});
 		res.status(200).json(row[0]);
     });
+});
+
+var minGenWidth = 10, maxGenWidth = 40,
+    minGenHeight = 10, maxGenHeight = 40;
+
+restapi.get('/maze/gen/:alg/:width/:height', function(req, res){
+    var seed = Math.floor(Math.random() * 50000);
+    if(!algorithms[req.params.alg]) return res.status(404).json({"response":"algorithm not found","query":req.params.alg});
+    if(req.params.width < minGenWidth || req.params.width > maxGenWidth) return res.status(400).json({"response":
+        "maze outside size requirement", "queryWidth":req.params.width,"minWidth":minGenWidth,"maxWidth":maxGenWidth});
+    if(req.params.height < minGenHeight || req.params.width > maxGenHeight) return res.status(400).json({"response":
+        "maze outside size requirement", "queryHeight":req.params.height,"minHeight":minGenHeight,"maxHeight":maxGenHeight});
+    res.status(200).json(genMaze(req.params.alg, seed, req.params.width, req.params.height));
+});
+
+function stringToInt(str) {
+    var accumulator = 0;
+    for (var i = 0, len = str.length; i < len; i++) {
+        accumulator += str.charCodeAt(i);
+    }
+};
+
+restapi.get('/maze/gen/:alg/:width/:height/:seed', function(req, res){
+    var seed = parseInt(req.params.seed);
+    if(isNaN(seed)) seed = stringToInt(req.params.seed);
+    if(!algorithms[req.params.alg]) return res.status(404).json({"response":"algorithm not found","query":req.params.alg});
+    if(req.params.width < minGenWidth || req.params.width > maxGenWidth) return res.status(400).json({"response":
+        "maze outside size requirement", "queryWidth":req.params.width,"minWidth":minGenWidth,"maxWidth":maxGenWidth});
+    if(req.params.height < minGenHeight || req.params.width > maxGenHeight) return res.status(400).json({"response":
+        "maze outside size requirement", "queryHeight":req.params.height,"minHeight":minGenHeight,"maxHeight":maxGenHeight});
+    res.status(200).json(genMaze(req.params.alg, seed, req.params.width, req.params.height));
+});
+
+restapi.get('/maze/gen/algorithms', function(req, res){
+    var keys = [];
+    for(key in algorithms) keys.push(key);
+    keys.sort();
+    res.status(200).json(keys);
 });
 
 restapi.get("/mazes", function(req, res){
