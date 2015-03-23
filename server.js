@@ -31,6 +31,8 @@ gets:
 
 /logout : auth'd; logs the user out if logged in, error if not logged in, confirmation if logged out
 
+/maze/gen/algorithms : none; returns an array of valid algorithms that /maze/gen/:algorithm will accept
+
 posts:
 /keepalive : auth'd; same as get
 
@@ -60,6 +62,19 @@ posts:
 
 /login : none; submits a login request, error if db error or incorrect credentials, login token if successful,
     data format is { email:(email), password:(password) }
+
+/maze/gen/:algorithm : none, submits a maze generator request, data format is
+    {
+        width:[10-40],
+        height:[10-40],
+        seed:(optional number)
+    }
+    it will return a maze in the format
+    {
+        maze:(normal maze data),
+        algorithm:(same as requested),
+        seed:(the used seed, either player specified or randomly generated if not specified)
+    }
 
 */
 if(!process.env.JAWSDB_URL) return console.log("Did you forget to set JAWSDB_URL to your mysql server params?");
@@ -217,6 +232,53 @@ function logout(req, res) {
 
 	delete tokens[req.headers.authorization];
 	res.status(200).json({"response":"logged out"});
+}
+
+//to get a seedable random function
+Math.seed = function(s) {
+    return function() {
+        s = Math.sin(s) * 10000; return s - Math.floor(s);
+    };
+};
+
+var N_CONST = 1,
+    E_CONST = 2,
+    S_CONST = 4,
+    W_CONST = 8;
+
+//methods to generate a maze algorithmically
+//all take width, height, seed
+//all return {seed:(seed), maze:(complete maze)}
+function genRecursiveBacktracer (width, height, seed)
+{
+    var ret = {"seed":seed || Math.floor(Math.random() * 50000)},
+    myRandom = Math.seed(ret.seed),
+    stack = [],
+    mapData = [];
+    for( var x = width; x--; )
+    {
+        mapData.push([]);
+        for( var y = height; y--; )
+        {
+            mapData[this.width-x-1].push(0);
+        }
+    }
+    
+    
+}
+
+//algorithm is guaranteed to be one of the registered algorithms
+function genMaze(algorithm, seed, width, height) {
+    var mazeReturn = {"algorithm":algorithm},
+    ret = {};
+    switch(algorithm) {
+        case recursive_backtracer:
+            ret = genRecursiveBacktracer(width, height, seed);
+        break;
+    }
+    mazeReturn.seed = ret.seed;
+    mazeReturn.maze = ret.maze;
+    return mazeReturn;
 }
 
 restapi.use(bodyParser.json());
