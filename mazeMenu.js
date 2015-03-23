@@ -90,6 +90,10 @@ var remoteDB = {
 		currentMazeFile = obj.displayName;
 		
 		return this.currentMaze;
+	},
+
+	getCurrentMaze: function() {
+		return this.currentMaze;
 	}
 }
 
@@ -689,7 +693,10 @@ $(function() {
 
 	//restart level
 	$("#menu_new").click(function() {
-		if (confirm("Are you sure you want to restart this level?")) AMaze.model.load(currentMazeFile, setGameCanvas);
+		if (confirm("Are you sure you want to restart this level?")) {
+			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
+			else AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+		}
 	});
 
 	$("#menu_goto").click(function() {
