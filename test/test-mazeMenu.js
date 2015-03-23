@@ -74,9 +74,44 @@ $.getJSON = function(filename, options, func) {
         var obj = require(filename);        
         func(obj);
 }
+
+// ajax mock object, do not test remote db, assume it works
 $.ajax = function(obj) {
-		//don't do anything on obj for now
-		var httpObj = {responseText: '{"response": "http content"}'};
+
+		var url = "http://axemaze-db.herokuapp.com";
+		var responseText;
+		
+		if (obj.url == url+"/categories")
+		{
+			responseText = '[{"id": 1,"name": "Small Mazes (5-10)"},{"id": 101,"name": "Medium Mazes (10-20)"},{"id": 201,"name": "Large Mazes (20-30)"},{"id": 301,"name": "Huge Mazes (30+)"}]';
+		}
+		else if (obj.url == url+"/mazes/category/1")
+		{
+			responseText = '{"category": 1,"categoryName": "Small Mazes (5-10)","mazes": [{"mazeno": 19,"displayName": "Dungeon of Smallness"}]}';
+		}
+		else if (obj.url == url+"/mazes/category/101")
+		{
+			responseText = '{"category": 101,"categoryName": "Medium Mazes (10-20)","mazes": []}';
+		}
+		else if (obj.url == url+"/mazes/category/201")
+		{
+			responseText = '{"category": 201,"categoryName": "Large Mazes (20-30)","mazes": []}';
+		}
+		else if (obj.url == url+"/mazes/category/301")
+		{
+			responseText = '{"category": 301,"categoryName": "Huge Mazes (30+)","mazes": []}';
+		}
+		else if (obj.url == url+"/mazes")
+		{
+			responseText = '1';
+		}
+		else if (obj.url == url+"/maze/19")
+		{
+			responseText = '{"mazeno": 19,"displayName": "Dungeon of Smallness","userForMaze": null,"height": 3,"width": 2,"mazeJSON": "{\\\"width\\\":2,\\\"height\\\":3,\\\"start\\\":[0,1],\\\"end\\\":[1,2],\\\"board\\\":[[6,5,6],[12,1,8]]}","category": 1}';
+		}
+		else responseText = '{"response": "none"}';
+
+		var httpObj = {responseText: responseText};
 		return httpObj;
 }
 
@@ -90,6 +125,10 @@ AMaze.model = {
 		};
 	},
 	load: function(filename, func) {
+		var load = new AMaze.model.Maze();
+		func(load);
+	},
+	inject: function(obj, func) {
 		var load = new AMaze.model.Maze();
 		func(load);
 	}

@@ -27,8 +27,6 @@ var mouseAction = {};
 
 //
 // Unified interface for remote DB
-// - built-in cache DB simply mirros the remote DB
-// - built-in session control
 //
 var remoteDB = {
 	user: "anonymous",
@@ -668,7 +666,7 @@ $(function() {
 
 
 	soundWizzard.initiate();
-	//soundWizzard.playMusic();
+	soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
 
