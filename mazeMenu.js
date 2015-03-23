@@ -61,16 +61,16 @@ var remoteDB = {
 
 	initiate: function() {
 		
-		//console.log("1. categories: "+haha);
+		//fetch categories
 		this.categories = this.HTTPGet("/categories");
 
-		//console.log("2. count :"+haha); //total mazes
+		//fetch maze count
 		this.mazeTotal = this.HTTPGet("/mazes").mazes;
 
 		//load first level
 		this.mazeCategory[0] = this.HTTPGet("/mazes/category/1");
 
-		//shold load the flowlling usig async method calls but leave them as for
+		//should load the flowlling usig async method calls but leave them as for
 		this.mazeCategory[1] = this.HTTPGet("/mazes/category/101");
 		this.mazeCategory[2] = this.HTTPGet("/mazes/category/201");
 		this.mazeCategory[3] = this.HTTPGet("/mazes/category/301");
@@ -90,7 +90,6 @@ var remoteDB = {
 		this.currentMaze = JSON.parse(obj.mazeJSON);
 		currentMazeFile = obj.displayName;
 		
-		//console.log("3. got maze 19 string "+haha)
 		return this.currentMaze;
 	}
 }
