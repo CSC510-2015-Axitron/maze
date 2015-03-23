@@ -19,7 +19,7 @@
 	src: url('./images/Pixel Azure Bonds.otf');
 }
 
-html {
+html.mazeui {
     min-height: 100%;
     -webkit-background-size: cover;
     -moz-background-size: cover;
@@ -33,13 +33,13 @@ html {
     background: -o-linear-gradient( to top, #15111b, #2a233f);
     background: linear-gradient( to top, #15111b, #2a233f);
 }
-body {
+body.mazeui {
 	color: #ab6d50;
 }
-div {
+div.mazeui {
 	padding:5px;
 }
-div.panel  {
+div.panel.mazeui  {
 	padding: 10px;
 	margin: 5px;
 }
@@ -65,7 +65,7 @@ canvas.real  {
 	font-family: 'Pixel Azure Bonds';
 	font-size:12px;
 }
-button {
+button.mazeui {
 	font-family: 'Pixel Azure Bonds';
 }
 #info {
@@ -79,7 +79,7 @@ button {
 	background-image: url('./images/panel_bg.png');
 	background-repeat: repeat-x;
 }
-span {
+span.mazeui {
 	border: solid 1px black;
 	background-color: #482e22;
 	padding: 5px;
@@ -97,7 +97,7 @@ span {
 #dsp_score {
 	//font-family: 'LLPixel';
 }
-.button {
+.mazeui.button {
 	border:1px solid #63402f;
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
@@ -120,7 +120,7 @@ span {
 	filter:progid:DXImageTransform.Microsoft.gradient(GradientType=0,startColorstr=#63402f, endColorstr=#734936);
 }
 
-.button:hover {
+.mazeui.button:hover {
 	border:1px solid #482e22;
 	background-color: #c5bb83; background-image:
 	-webkit-gradient(linear, left top, left bottom, from(#482e22), to(#63402f));
