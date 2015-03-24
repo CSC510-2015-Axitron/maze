@@ -743,6 +743,7 @@ function setGameCanvas(loaded) {
 
 $(function() {
 	$('#user_info').hide();
+	$('#menu_designer').hide();
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
 	login = function() {
@@ -771,6 +772,7 @@ $(function() {
 				remoteDB.login(email, data.token, data.userid);
 				loginDialog.dialog( "close" );
 				loginLoggedInDialog.dialog("open");
+				$('#menu_designer').show();
 				$('#user_info').show();
 				$('#user_id').text("USER: "+email);
 				$('#menu_login').text('Logout');
@@ -919,6 +921,7 @@ $(function() {
 				$('#menu_login').text('Login');
 				$('#user_info').hide();
 				$('#user_id').text("");
+				$('#menu_designer').hide();
 			}
 		}
 	});
