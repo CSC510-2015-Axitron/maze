@@ -31,7 +31,9 @@ var mouseAction = {};
 var remoteDB = {
 	user: "anonymous",
 	pass: "",
-	sectionTimestamp: 0,
+	token:"",
+	userID:0,
+	sessionTimeout: 20, //20 mins, should be close enough < 30
 	isLogon: false,
 	url: "http://axemaze-db.herokuapp.com",
 
@@ -41,12 +43,18 @@ var remoteDB = {
 
 	currMazeID: 0,			// current maze ID
 	currMazeObj: {},		// url/maze/:id
-	
+
+	sessionHandler: 0,
+
 	HTTPGet: function(path) {
 		return JSON.parse($.ajax({
 			type: "GET",
 			url: this.url+path,
 			async: false,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			}
 		}).responseText);
 
 	},
@@ -54,13 +62,70 @@ var remoteDB = {
 		$.ajax({
 			type: "GET",
 			url: this.url+path,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			},
 			success: function(data) {func(data);},
-			error: function(req, status, e) {console.log(req.status, req.responseText, status, e);}
+			error: function(data) {func(JSON.parse(data.responseText));}
 		});
-	},	
+	},
+	HTTPPost: function(path, datas) {
+		return JSON.parse($.ajax({
+			type: "POST",
+			data: JSON.stringify(datas),
+			url: this.url+path,
+			async: false,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			}
+		}).responseText);
+
+	},
+	HTTPPostAsync: function(path, datas, func) {
+		$.ajax({
+			type: "POST",
+			data: JSON.stringify(datas),
+			url: this.url+path,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			},
+			success: function(data) {console.log(data); func(data);},
+			error: function(data) {func(JSON.parse(data.responseText));}
+		});
+	},
+
+	login: function(email, token, userID) {
+		this.user = email;
+		this.token = token;
+		this.userID = userID;
+		this.isLogon = true;
+		this.sessionHandler = setInterval(function() {
+			this.HTTPGetAsync("/keepalive", function(e) {
+				if (e.response != true) {
+					this.logout();
+				}
+			});
+		}, this.sessionTimeout*60*1000);
+	},
+
+	logout: function() {
+
+		if (this.HTTPGet("/logout").response === "logged out") {
+			remoteDB.user = "anonymous";
+			remoteDB.token = "";
+			remoteDB.userID = 0;
+			remoteDB.isLogon = false;
+			clearInterval(this.sessionHandler);
+			return true;
+		}
+		else return false;
+	},
 
 	initiate: function() {
-		
+
 		//fetch categories
 		this.categories = this.HTTPGet("/categories");
 
@@ -75,7 +140,7 @@ var remoteDB = {
 		{
 			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[i] = e;});
 		}
-		
+
 	},
 
 	getNextMaze: function() {
@@ -110,12 +175,19 @@ var remoteDB = {
 		var obj = this.HTTPGet("/maze/"+this.currMazeID.toString());
 		this.currentMaze = JSON.parse(obj.mazeJSON);
 		currentMazeFile = obj.displayName;
-		
+
 		return this.currentMaze;
 	},
 
 	getCurrentMaze: function() {
 		return this.currentMaze;
+	},
+
+	updateStatus: function(time, steps) {
+		if (this.isLogon)
+		{
+			this.HTTPPostAsync("/play/"+this.currMazeID.toString()+"/"+this.userID.toString(), {time: time, steps: steps}, function(){});
+		}
 	}
 }
 
@@ -124,15 +196,15 @@ var gameData = new function() {
 	this.totalStep = 0;
 	this.totalTime = 0;
 	this.totalScore = 0;
-	var currentStep;
-	var currentTime;
+	this.currentSteps;
+	this.currentTime;
 
-	this.keepStep = function(a) {this.totalStep += (currentStep = a);}
-	this.keepTime = function(a) {this.totalTime += (currentTime = a);}
+	this.keepStep = function(a) {this.totalStep += (this.currentSteps = a);}
+	this.keepTime = function(a) {this.totalTime += (this.currentTime = a);}
 
 	// score formula
 	this.getScore = function() {
-		var a = Math.round(50 * (1 + currentMaze * 0.6) - currentStep - currentTime * 3);
+		var a = Math.round(50 * (1 + currentMaze * 0.6) - this.currentSteps - this.currentTime * 3);
 		this.totalScore += ((a < 0)? 0:a);
 		return this.totalScore;
 	}
@@ -180,9 +252,10 @@ function updateStatus(maze) {
 		soundWizzard.playWinner();
 		maze.userData.TimerOff(); //stop the timer
 		inputLock = mouseAction.inputLock = true; //lock input device
+		remoteDB.updateStatus(gameData.currentTime, gameData.currentSteps);
 
 		setTimeout(function() {
-			
+
 			$("#dsp_score").text(maze.gameData.getScore());
 
 		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
@@ -273,10 +346,10 @@ function userData(initTime){
 
 // Sound wizzard based on buzz.min.js
 var soundWizzard = {
-	
+
 	isActive: false,
 	currSong: 0,
-	
+
 	musicFiles: [
 		"sound/Anguish.mp3",
 		"sound/Mellowtron.mp3"
@@ -319,12 +392,12 @@ var soundWizzard = {
 				this.block = new buzz.sound(this.soundFiles.block[0], {preload: true, volumne: 90}); //volumne doesn't work on some browsers
 				this.blockPause = this.soundFiles.block[1];
 		}
-		
+
 		if (this.soundFiles.finale != "") {
 				this.finale = new buzz.sound(this.soundFiles.finale[0], {preload: true});
 				this.finalePause = this.soundFiles.finale[1];
 		}
-		
+
 	},
 
 	playMusic: function() {
@@ -380,7 +453,7 @@ var mouseWorkEngine = function(canvas) {
 	this.inputLock = false; //input device lock
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 500; //shortest movement interval (ms)! 
+	var interval = 500; //shortest movement interval (ms)!
 	var interval_max = 1000; //max movement interval
 	var accelerator = 3; //mouse accelerator
 
@@ -413,11 +486,11 @@ var mouseWorkEngine = function(canvas) {
 			case 4:
 				if (flag = theMazeModel.movePlayer(AMaze.model.W_CONST)) updateStatus(theMazeModel);
 				break;
-			
+
 			case 3:
 				if (flag = theMazeModel.movePlayer(AMaze.model.S_CONST)) updateStatus(theMazeModel);
 				break;
-		
+
 			case 1:
 				if (flag = theMazeModel.movePlayer(AMaze.model.N_CONST)) updateStatus(theMazeModel);
 				break;
@@ -440,7 +513,7 @@ var mouseWorkEngine = function(canvas) {
 		if (mouseDownHook && Date.now() - lastTime > 100) {
 			offsetX = (currX = get_mouse_x(e)) - lastX;
 			offsetY = (currY = get_mouse_y(e)) - lastY;
-			var x = Math.abs(offsetX); 
+			var x = Math.abs(offsetX);
 			var y = Math.abs(offsetY);
 			var currMove;
 			var adj_interval;
@@ -452,7 +525,7 @@ var mouseWorkEngine = function(canvas) {
 				//not allow diagonal movement, recalibrate mouse center
 				if (x > y) {
 					offsetY = 0;
-					if (offsetX > 0) currMove = 2; else currMove = 4; 
+					if (offsetX > 0) currMove = 2; else currMove = 4;
 					adj_interval = Math.max(0, (interval_max - interval)*(1- (x-threshold)/accelerator/threshold));
 				}
 				else {
@@ -460,10 +533,10 @@ var mouseWorkEngine = function(canvas) {
 					if (offsetY > 0) currMove = 3; else currMove = 1;
 					adj_interval = Math.max(0, (interval_max - interval)*(1- (y-threshold)/accelerator/threshold));
 				}
-				
+
 				lastX = currX;
 				lastY = currY;
-				
+
 				//trigger movement if dir changes
 				//if (currMove != lastMove) { //commented out for linear acceleration
 
@@ -687,7 +760,137 @@ function setGameCanvas(loaded) {
 };
 
 $(function() {
+	$('#user_info').hide();
+	$('#menu_designer').hide();
+	var loginEmailField = $('#login_email'),
+	loginPasswordField = $('#login_password'),
+	login = function() {
+		var email = loginEmailField.val() || "",
+		password = loginPasswordField.val() || "";
+		loginEmailField.removeClass( "ui-state-error" );
+		loginPasswordField.removeClass( "ui-state-error" );
 
+		if(email.length > 0 && password.length > 0)
+			remoteDB.HTTPPostAsync("/login", {"email":email,"password":password}, function(data){
+				if(!(data)) return console.log("error occurred");
+				if(data.response && data.response === "user does not exist")
+				{
+					loginEmailField.addClass( "ui-state-error" );
+					loginInvalidEmailDialog.dialog("open");
+					return;
+				}
+				if(data.response && data.response === "invalid login credentials")
+				{
+					loginEmailField.addClass( "ui-state-error" );
+					loginPasswordField.addClass( "ui-state-error" );
+					loginInvalidLoginDialog.dialog("open");
+					return;
+				}
+				if(!(data.userid && data.token)) return console.log(data || "error occurred");
+				remoteDB.login(email, data.token, data.userid);
+				loginDialog.dialog( "close" );
+				loginLoggedInDialog.dialog("open");
+				$('#menu_designer').show();
+				$('#user_info').show();
+				$('#user_id').text("USER: "+email);
+				$('#menu_login').text('Logout');
+			});
+		else
+			if(email.length < 1)
+				loginEmailField.addClass( "ui-state-error" );
+			if(password.length < 1)
+				loginPasswordField.addClass( "ui-state-error" );
+	},
+	register = function() {
+		var email = loginEmailField.val(),
+		password = loginPasswordField.val();
+		loginEmailField.removeClass( "ui-state-error" );
+		loginPasswordField.removeClass( "ui-state-error" );
+
+		if(email.length > 0 && password.length > 0)
+			remoteDB.HTTPPostAsync("/register", {"email":email,"password":password}, function(data){
+				if(!(data && data.response)) return console.log(data || "error occurred");
+				if(data.response === "duplicate email address")
+				{
+					loginEmailField.addClass( "ui-state-error" );
+					return registerDupEmailDialog.dialog("open");
+				}
+				registerRegisteredDialog.dialog("open");
+				login();
+			});
+		else
+			if(email.length < 1)
+				loginEmailField.addClass( "ui-state-error" );
+			if(password.length < 1)
+				loginPasswordField.addClass( "ui-state-error" );
+	},
+	loginDialog = $( "#login-form" ).dialog({
+		autoOpen: false,
+		height: 300,
+		width: 350,
+		modal: true,
+		buttons: {
+			"Login": login,
+			"Register": register,
+			Cancel: function() {
+				loginDialog.dialog( "close" );
+			}
+		},
+		close: function() {
+			form[ 0 ].reset();
+			loginEmailField.removeClass( "ui-state-error" );
+			loginPasswordField.removeClass( "ui-state-error" );
+		}
+	}),
+	registerDupEmailDialog = $( "#message-registration-dup-email" ).dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	}),
+	registerRegisteredDialog = $( "#message-registration-registered" ).dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	}),
+	loginInvalidEmailDialog = $( "#message-login-invalid-email" ).dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	}),
+	loginInvalidLoginDialog = $( "#message-login-invalid-login" ).dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	}),
+	loginLoggedInDialog = $( "#message-login-loggedin" ).dialog({
+		autoOpen: false,
+		modal: true,
+		buttons: {
+			Ok: function() {
+				$( this ).dialog( "close" );
+			}
+		}
+	}),
+	form = loginDialog.find( "form" ).on( "submit", function( event ) {
+		event.preventDefault();
+		login();
+	});
 
 	soundWizzard.initiate();
 	soundWizzard.playMusic();
@@ -729,8 +932,16 @@ $(function() {
 		console.log("level button is pressed.");
 	});
 
-	$("#menu_save").click(function() {
-		console.log("save button is pressed.");
+	$("#menu_login").click(function() {
+		if (!remoteDB.isLogon) loginDialog.dialog("open");
+		else {
+			if (remoteDB.logout()){
+				$('#menu_login').text('Login');
+				$('#user_info').hide();
+				$('#user_id').text("");
+				$('#menu_designer').hide();
+			}
+		}
 	});
 
 	$("#menu_load").click(function() {

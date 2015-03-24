@@ -1,32 +1,32 @@
-<html>
+<html class="mazeui">
 <head>
   <script type="text/javascript" src="./designer.js"></script>
   <link rel="stylesheet" type="text/css" href="../maze.css">
   <meta charset='utf-8'>
 </head>
-<body>
-<div class="container">
-	<div class="panel">
-		<span id="buttons">
-			<span>
+<body class="mazeui">
+<div class="container mazeui">
+	<div class="panel mazeui">
+		<span id="buttons" class="mazeui">
+			<span class="mazeui">
 				W: <input type='text' size='3' id='width' value='10'>
 				H: <input type='text' size='3' id='height' value='10'>
 			</span>
-			<a href="#" onclick='set_size()' class="button">Set Size</a>
+			<a href="#" onclick='set_size()' class="button mazeui">Set Size</a>
 		</span>
-		<span id="buttons">
+		<span id="buttons" class="mazeui">
 			Double Click Mouse Action:
-			<span>
-				<input type='radio' name='tool' id='t_start' onclick='set_tool(1)' checked> <label for='t_start'>Set Start</label>
-				<input type='radio' name='tool' id='t_finish' onclick='set_tool(2)'> <label for='t_finish'>Set Finish</label>
+			<span class="mazeui">
+				<input type='radio' name='tool' id='t_start' onclick='set_tool(1)' checked class="mazeui"> <label for='t_start'>Set Start</label>
+				<input type='radio' name='tool' id='t_finish' onclick='set_tool(2)' class="mazeui"> <label for='t_finish'>Set Finish</label>
 			</span>
 		</span>
 	</div>
 
-	<div>
+	<div class="mazeui">
 		<canvas id="maze_canvas" width=0 height=0 class="real" style="background-color: transparent;"></canvas>
-		<table style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
-		<textarea wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea>
+		<table class="mazeui" style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
+		<textarea class="mazeui" wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea>
 	</div>
 </div>
 <script>set_size()</script>
