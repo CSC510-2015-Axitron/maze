@@ -33,7 +33,7 @@ var remoteDB = {
 	pass: "",
 	token:"",
 	userID:0,
-	sectionTimestamp: 0,
+	sessionTimeout: 20, //20 mins, should be close enough < 30
 	isLogon: false,
 	url: "http://axemaze-db.herokuapp.com",
 
@@ -43,6 +43,8 @@ var remoteDB = {
 
 	currMazeID: 0,			// current maze ID
 	currMazeObj: {},		// url/maze/:id
+
+	sessionHandler: 0,
 
 	HTTPGet: function(path) {
 		return JSON.parse($.ajax({
@@ -100,6 +102,13 @@ var remoteDB = {
 		this.token = token;
 		this.userID = userID;
 		this.isLogon = true;
+		this.sessionHandler = setInterval(function() {
+			this.HTTPPostAsync("/keepalive", function(e) {
+				if (e.response == "unauthorized token") {
+					this.logout();
+				}
+			});
+		}, this.sessionTimeout*60*1000);
 	},
 
 	logout: function() {
@@ -109,6 +118,7 @@ var remoteDB = {
 			remoteDB.token = "";
 			remoteDB.userID = 0;
 			remoteDB.isLogon = false;
+			clearInterval(this.sessionHandler);
 			return true;
 		}
 		else return false;
