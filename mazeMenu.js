@@ -32,7 +32,7 @@ var remoteDB = {
 	user: "anonymous",
 	pass: "",
 	token:"",
-	id:0,
+	userID:0,
 	sectionTimestamp: 0,
 	isLogon: false,
 	url: "http://axemaze-db.herokuapp.com",
@@ -93,6 +93,25 @@ var remoteDB = {
 			success: function(data) {console.log(data); func(data);},
 			error: function(data) {func(JSON.parse(data.responseText));}
 		});
+	},
+
+	login: function(email, token, userID) {
+		this.user = email;
+		this.token = token;
+		this.userID = userID;
+		this.isLogon = true;
+	},
+
+	logout: function() {
+
+		if (this.HTTPGet("/logout").response === "logged out") {
+			remoteDB.user = "anonymous";
+			remoteDB.token = "";
+			remoteDB.userID = 0;
+			remoteDB.isLogon = false;
+			return true;
+		}
+		else return false;
 	},
 
 	initiate: function() {
@@ -723,6 +742,7 @@ function setGameCanvas(loaded) {
 };
 
 $(function() {
+	$('#user_info').hide();
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
 	login = function() {
@@ -748,12 +768,12 @@ $(function() {
 					return;
 				}
 				if(!(data.userid && data.token)) return console.log(data || "error occurred");
-				remoteDB.user = email;
-				remoteDB.pass = password;
-				remoteDB.token = data.token;
-				remoteDB.id = data.userid;
+				remoteDB.login(email, data.token, data.userid);
 				loginDialog.dialog( "close" );
 				loginLoggedInDialog.dialog("open");
+				$('#user_info').show();
+				$('#user_id').text("USER: "+email);
+				$('#menu_login').text('Logout');
 			});
 		else
 			if(email.length < 1)
@@ -775,10 +795,6 @@ $(function() {
 					loginEmailField.addClass( "ui-state-error" );
 					return registerDupEmailDialog.dialog("open");
 				}
-				remoteDB.user = email;
-				remoteDB.pass = password;
-				remoteDB.token = data.token;
-				remoteDB.id = data.userid;
 				registerRegisteredDialog.dialog("open");
 				login();
 			});
@@ -897,7 +913,14 @@ $(function() {
 	});
 
 	$("#menu_login").click(function() {
-		loginDialog.dialog("open");
+		if (!remoteDB.isLogon) loginDialog.dialog("open");
+		else {
+			if (remoteDB.logout()){
+				$('#menu_login').text('Login');
+				$('#user_info').hide();
+				$('#user_id').text("");
+			}
+		}
 	});
 
 	$("#menu_load").click(function() {
