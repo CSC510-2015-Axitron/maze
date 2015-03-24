@@ -103,8 +103,8 @@ var remoteDB = {
 		this.userID = userID;
 		this.isLogon = true;
 		this.sessionHandler = setInterval(function() {
-			this.HTTPPostAsync("/keepalive", function(e) {
-				if (e.response == "unauthorized token") {
+			this.HTTPGetAsync("/keepalive", function(e) {
+				if (e.response != true) {
 					this.logout();
 				}
 			});
@@ -181,6 +181,13 @@ var remoteDB = {
 
 	getCurrentMaze: function() {
 		return this.currentMaze;
+	},
+
+	updateStatus: function(time, steps) {
+		if (this.isLogon)
+		{
+			this.HTTPPostAsync("/play/"+this.currMazeID.toString()+"/"+this.userID.toString(), {time: time, steps: steps}, function(){});
+		}
 	}
 }
 
@@ -189,15 +196,15 @@ var gameData = new function() {
 	this.totalStep = 0;
 	this.totalTime = 0;
 	this.totalScore = 0;
-	var currentStep;
-	var currentTime;
+	this.currentSteps;
+	this.currentTime;
 
-	this.keepStep = function(a) {this.totalStep += (currentStep = a);}
-	this.keepTime = function(a) {this.totalTime += (currentTime = a);}
+	this.keepStep = function(a) {this.totalStep += (this.currentSteps = a);}
+	this.keepTime = function(a) {this.totalTime += (this.currentTime = a);}
 
 	// score formula
 	this.getScore = function() {
-		var a = Math.round(50 * (1 + currentMaze * 0.6) - currentStep - currentTime * 3);
+		var a = Math.round(50 * (1 + currentMaze * 0.6) - this.currentSteps - this.currentTime * 3);
 		this.totalScore += ((a < 0)? 0:a);
 		return this.totalScore;
 	}
@@ -245,6 +252,7 @@ function updateStatus(maze) {
 		soundWizzard.playWinner();
 		maze.userData.TimerOff(); //stop the timer
 		inputLock = mouseAction.inputLock = true; //lock input device
+		remoteDB.updateStatus(gameData.currentTime, gameData.currentSteps);
 
 		setTimeout(function() {
 
