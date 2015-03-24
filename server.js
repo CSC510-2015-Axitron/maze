@@ -63,10 +63,9 @@ posts:
 /login : none; submits a login request, error if db error or incorrect credentials, login token if successful,
     data format is { email:(email), password:(password) }
 
-/maze/gen/:algorithm : none, submits a maze generator request, data format is
+/maze/gen : none, submits a maze generator request, data format is
     {
-        width:[10-40],
-        height:[10-40],
+        algorithm:(alg, picked from /maze/gen/algorithms)
         seed:(optional number)
     }
     it will return a maze in the format
@@ -255,8 +254,8 @@ var N_CONST = 1,
 //all return {seed:(seed), maze:(complete maze)}
 function genRecursiveBacktracker (width, height, seed)
 {
-    var ret = {"seed":(seed || Math.floor(Math.random() * 50000))},
-    myRandom = seedRandom(ret.seed),
+    var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
+    myRandom = seedRandom(seed),
     stack = [],
     maze = {"width":width,"height":height, board:[]};
     for( var x = width; x--; )
@@ -318,10 +317,15 @@ var algorithms = {
 };
 
 //algorithm is guaranteed to be one of the registered algorithms
-function genMaze(algorithm, seed, width, height) {
+function genMaze(algorithm, seed) {
     var mazeReturn = {"algorithm":algorithm},
+    seededRandom = seedRandom(seed),
+    transform = function(x){return 1-(1/(1+x))},
+    sdTransform = function(sd){ return transform( ( (seededRandom()+0.5) * sd) %5000000/5000000); },
+    width = Math.floor(sdTransform(seed)*60+10),
+    height = Math.floor(sdTransform(seed)*60+10),
     ret = algorithms[algorithm](width, height, seed);
-    mazeReturn.seed = ret.seed;
+    mazeReturn.seed = seed;
     mazeReturn.maze = ret.maze;
     return mazeReturn;
 }
@@ -489,6 +493,17 @@ restapi.get('/top10/:mazeno', function(req,res){
     });
 });
 
+
+var minGenWidth = 10, maxGenWidth = 40,
+    minGenHeight = 10, maxGenHeight = 40;
+
+restapi.post('/maze/gen', function(req, res){
+    var seed = req.body.seed || Math.floor(Math.random() * 50000);
+    if(!req.body.algorithm) return res.status(400).json({"response":"no algorithm selected"});
+    if(!algorithms[req.body.algorithm]) return res.status(404).json({"response":"algorithm not found","query":req.params.alg});
+    res.status(200).json(genMaze(req.body.algorithm, seed));
+});
+
 //returnFunc(valid?, error)
 function checkMaze(json, returnFunc){
     if(!(json.maze && json.name))
@@ -561,36 +576,6 @@ restapi.get('/maze/:mazeno', function(req, res){
     });
 });
 
-var minGenWidth = 10, maxGenWidth = 40,
-    minGenHeight = 10, maxGenHeight = 40;
-
-restapi.get('/maze/gen/:alg/:width/:height', function(req, res){
-    var seed = Math.floor(Math.random() * 50000);
-    if(!algorithms[req.params.alg]) return res.status(404).json({"response":"algorithm not found","query":req.params.alg});
-    if(req.params.width < minGenWidth || req.params.width > maxGenWidth) return res.status(400).json({"response":
-        "maze outside size requirement", "queryWidth":req.params.width,"minWidth":minGenWidth,"maxWidth":maxGenWidth});
-    if(req.params.height < minGenHeight || req.params.width > maxGenHeight) return res.status(400).json({"response":
-        "maze outside size requirement", "queryHeight":req.params.height,"minHeight":minGenHeight,"maxHeight":maxGenHeight});
-    res.status(200).json(genMaze(req.params.alg, seed, req.params.width, req.params.height));
-});
-
-function stringToInt(str) {
-    var accumulator = 0;
-    for (var i = 0, len = str.length; i < len; i++) {
-        accumulator += str.charCodeAt(i);
-    }
-};
-
-restapi.get('/maze/gen/:alg/:width/:height/:seed', function(req, res){
-    var seed = parseInt(req.params.seed);
-    if(isNaN(seed)) seed = stringToInt(req.params.seed);
-    if(!algorithms[req.params.alg]) return res.status(404).json({"response":"algorithm not found","query":req.params.alg});
-    if(req.params.width < minGenWidth || req.params.width > maxGenWidth) return res.status(400).json({"response":
-        "maze outside size requirement", "queryWidth":req.params.width,"minWidth":minGenWidth,"maxWidth":maxGenWidth});
-    if(req.params.height < minGenHeight || req.params.width > maxGenHeight) return res.status(400).json({"response":
-        "maze outside size requirement", "queryHeight":req.params.height,"minHeight":minGenHeight,"maxHeight":maxGenHeight});
-    res.status(200).json(genMaze(req.params.alg, seed, req.params.width, req.params.height));
-});
 
 restapi.get('/maze/gen/algorithms', function(req, res){
     var keys = [];
