@@ -41,6 +41,13 @@ $ = function(obj) {
 		},
 		text: function(a) {
 			this.dummpyDsp = a;
+		},
+		on: function(a, func) {
+			//event object
+			var event = {
+				preventDefault: function() {this.preventDefaultStatus = true;}
+			}
+			func(event);
 		}
 	}
 	
@@ -48,8 +55,24 @@ $ = function(obj) {
 
 		if (obj.match(/^#.+/)) //check if obj is html components
 		{
+			components.removeClass = function(a) {this.removeclassStatus = "a";} //add to the status 
+			components.val = function() {return "input string";}
 			components.click = function(a) {
 				a();
+			}
+			components.show = function() {
+				this.status = "showed";
+			}
+			components.hide = function() {
+				this.status = "hidden";
+			}
+			components.dialog = function(obj) {
+				this.dialogContent = obj; 
+				return this;
+			}
+			components.find = function(obj) {
+				//assume obj is found
+				return this;
 			}
 			return components;
 		}
