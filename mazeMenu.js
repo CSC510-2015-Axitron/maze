@@ -44,6 +44,8 @@ var remoteDB = {
 	currMazeID: 0,			// current maze ID
 	currMazeObj: {},		// url/maze/:id
 
+	userMazeCategory: [],	// user-created mazes
+
 	sessionHandler: 0,
 
 	HTTPGet: function(path) {
@@ -109,6 +111,9 @@ var remoteDB = {
 				}
 			});
 		}, this.sessionTimeout*60*1000);
+
+		//retrieve user owned mazes
+		this.getCategoryByUserID(this.userID);
 	},
 
 	logout: function() {
@@ -141,6 +146,22 @@ var remoteDB = {
 			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[i] = e;});
 		}
 
+	},
+
+	// get maze by maze no and start the level, will not check maze availability, assume chosen from predefined mazeno array
+	getMazeByMazeno: function(mazeno) {
+		maze.userData.TimerOff(); //stop the timer
+		var obj = this.HTTPGet("/maze/"+(this.currMazeID=mazeno).toString());
+		this.currentMaze = JSON.parse(obj.mazeJSON);
+		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+	},
+
+	getCategoryByUserID: function(id) {
+		this.HTTPGetAsync("/mazes/user/"+id.toString(), function(e) {
+			if (e.response !== "Not Found") {
+				userMazeCategory = e;
+			}
+		});
 	},
 
 	getNextMaze: function() {
