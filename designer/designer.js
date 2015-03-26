@@ -39,8 +39,8 @@ $(function() {
 		return Array.apply(null,Array(numRows+1)).join(tRow(numColumns)+"\n");
 	},
 
-	//called when either a horizontal or vertical wall is clicked
-	wallClick = function() {
+	//called when either a horizontal or vertical wall is gone over
+	wallOver = function() {
 		if(mouseDown)
 		{
 			var hIndex = horizontalPathCells.index($(this)),
@@ -72,6 +72,35 @@ $(function() {
 			}
 		}
 	},
+	
+	//called when either a horizontal or vertical wall is clicked
+	wallClick = function() {
+		var hIndex = horizontalPathCells.index($(this)),
+		vIndex = verticalPathCells.index($(this));
+		if(hIndex != -1 || vIndex != -1)
+		{
+			if(activating == undefined)
+			{
+				$( this ).toggleClass('selected');
+				activating = $( this ).hasClass('selected');
+			}
+			if(activating) $( this ).addClass('selected');
+			else $( this ).removeClass('selected');
+
+			if(hIndex != -1)
+			{
+				x = hIndex%hCellIndex;
+				y = Math.floor(hIndex/hCellIndex);
+			}
+			else
+			{
+				x = vIndex%(hCellIndex+1);
+				y = Math.floor(vIndex/(hCellIndex+1));
+			}
+			console.log(activating);
+			toggleWall(x,y, hIndex == -1, activating);
+		}
+	},
 
 	//called when one of the center cells is clicked
 	cellClick = function() {
@@ -80,7 +109,6 @@ $(function() {
 		{
 			if(toolOnStart && startDiv) startDiv.removeClass('start').text('');
 			if(!toolOnStart && endDiv) endDiv.removeClass('end').text('');
-
 			var x = centerPathCells.index($(this))%maze.width,
 			y = Math.floor(centerPathCells.index($(this))/maze.width);
 
@@ -180,10 +208,11 @@ $(function() {
 		}
 
 		centerPathCells.on('click', cellClick);
-		horizontalPathCells.on('mouseover', wallClick);
-		verticalPathCells.on('mouseover', wallClick);
+		horizontalPathCells.on('mouseover', wallOver);
+		verticalPathCells.on('mouseover', wallOver);
 		horizontalPathCells.on('mousedown', wallClick);
 		verticalPathCells.on('mousedown', wallClick);
+
 
 		updateMazeCode();
 	},
