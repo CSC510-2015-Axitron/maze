@@ -1,5 +1,6 @@
 <html class="mazeui">
 <head>
+  <script type="text/javascript" src="../jquery-2.1.3.min.js"></script>
   <script type="text/javascript" src="./designer.js"></script>
   <link rel="stylesheet" type="text/css" href="../maze.css">
   <meta charset='utf-8'>
@@ -12,7 +13,7 @@
 				W: <input type='text' size='3' id='width' value='10'>
 				H: <input type='text' size='3' id='height' value='10'>
 			</span>
-			<a href="#" onclick='set_size()' class="button mazeui">Set Size</a>
+			<a href="#" class="button mazeui" id="updateSize">Set Size</a>
 		</span>
 		<span id="buttons" class="mazeui">
 			Double Click Mouse Action:
@@ -24,11 +25,11 @@
 	</div>
 
 	<div class="mazeui">
-		<canvas id="maze_canvas" width=0 height=0 class="real" style="background-color: transparent;"></canvas>
-		<table class="mazeui" style="margin: 0px auto;" border='1' cellspacing='0' cellpadding='0' id='maze_table'></table>
+		<div class="mazeui scrollable">
+			<div class="mazeui designertable" id='maze_table'></div>
+		</div>
 		<textarea class="mazeui" wrap='virtual' rows='15' cols='80' id='code_textarea'></textarea>
 	</div>
 </div>
-<script>set_size()</script>
 </body>
 </html>
