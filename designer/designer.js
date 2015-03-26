@@ -8,6 +8,7 @@ $(function() {
 	},
 	mtbl = $('#maze_table'),
 	codeArea = $('#code_textarea'),
+	mazeContainer = $('#mazecontainer'),
 	cellWidth = 20,//probably should find a better way to do this
 	cellHeight = 20,//make sure this and the css match exactly
 	verticalPathCells = $(),
@@ -24,6 +25,10 @@ $(function() {
 	S_CONST = 1 << 2,
 	W_CONST = 1 << 3,
 
+	mouseDown = false,
+	//whether the first cell mousedown'd into was inactive (activating = true) or active (activating = false)
+	activating = undefined,
+
 	//make a table row with a number of cells
 	tRow = function(numCells) {
 		return Array.apply(null,Array(numCells+1)).join("<div></div>");
@@ -34,26 +39,41 @@ $(function() {
 		return Array.apply(null,Array(numRows+1)).join(tRow(numColumns)+"\n");
 	},
 
+	//called when either a horizontal or vertical wall is clicked
 	wallClick = function() {
-		var hIndex = horizontalPathCells.index($(this)),
-		vIndex = verticalPathCells.index($(this)),
-		x,y;
-
-		$( this ).toggleClass('selected');
-
-
-		if(hIndex != -1)
+		if(mouseDown)
 		{
-			x = hIndex%hCellIndex;
-			y = Math.floor(hIndex/hCellIndex);
+			var hIndex = horizontalPathCells.index($(this)),
+			vIndex = verticalPathCells.index($(this)),
+			x,y;
+
+			if(activating == undefined)
+			{
+				$( this ).toggleClass('selected');
+				activating = $( this ).hasClass('selected');
+			}
+			else
+			{
+				if(activating) $( this ).addClass('selected');
+				else $( this ).removeClass('selected');
+			}
+
+
+			if(hIndex != -1)
+			{
+				x = hIndex%hCellIndex;
+				y = Math.floor(hIndex/hCellIndex);
+			}
+			else
+			{
+				x = vIndex%(hCellIndex+1);
+				y = Math.floor(vIndex/(hCellIndex+1));
+			}
+			toggleWall(x,y, hIndex == -1, activating);
 		}
-		else
-		{
-			x = vIndex%(hCellIndex+1);
-			y = Math.floor(vIndex/(hCellIndex+1));
-		}
-		toggleWall(x,y, hIndex == -1, $( this ).hasClass('selected'));
 	},
+
+	//called when one of the center cells is clicked
 	cellClick = function() {
 		var now = new Date();
 		if($( this ).is(lastSelectedObject) && (now - lastSelectedTime) < 300)//0.3 s
@@ -82,6 +102,7 @@ $(function() {
 		updateMazeCode();
 	},
 
+	//toggle a wall with coords x and y and if it's a vertical path (going north/south) or not
 	toggleWall = function(x,y,isVert,isOn) {
 		if(isVert)
 		{
@@ -133,8 +154,8 @@ $(function() {
 			}
 		}
 
-		horizontalPathCells.off('click');
-		verticalPathCells.off('click');
+		horizontalPathCells.off('mouseover');
+		verticalPathCells.off('mouseover');
 		centerPathCells.off('click');
 
 		mtbl.css({width:cellWidth*(maze.width*2-1), height:cellHeight*(maze.height*2-1)});
@@ -159,8 +180,8 @@ $(function() {
 		}
 
 		centerPathCells.on('click', cellClick);
-		horizontalPathCells.on('click', wallClick);
-		verticalPathCells.on('click', wallClick);
+		horizontalPathCells.on('mouseover', wallClick);
+		verticalPathCells.on('mouseover', wallClick);
 
 		updateMazeCode();
 	},
@@ -174,6 +195,18 @@ $(function() {
 
 	$('#t_start').click(function(){toolOnStart = true;});
 	$('#t_end').click(function(){toolOnStart = false});
+	mazeContainer.on('mousedown', function(e){
+		e.preventDefault();
+		mouseDown = true;
+	});
+	mazeContainer.on('mouseup', function(){
+		mouseDown = false;
+		activating = undefined;
+	});
+
+
+
+
 	toolOnStart = $('#t_start').is(':checked');
 
 	setSize();
