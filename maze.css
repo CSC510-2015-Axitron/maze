@@ -149,3 +149,31 @@ span.mazeui {
 	height:700px;
 	overflow:auto;
 }
+
+.mazeui.mazeSelectedWall {
+	background-color:#555;
+}
+.mazeui.mazeUnSelectedWall {
+	background-color:#ddd;
+}
+
+.mazeui.mazeCell {
+	background-color:#333;
+	color:#fff;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.mazeui.mazeCell.start {
+	background-color:#3d3;
+	color:#fff;
+}
+
+.mazeui.mazeCell.end {
+	background-color:#d33;
+	color:#fff;
+}
