@@ -13,11 +13,16 @@ $(function() {
 	verticalPathCells = $(),
 	horizontalPathCells = $(),
 	centerPathCells = $(),
+	hCellIndex,
 	startDiv,
 	endDiv,
 	lastSelectedObject,
 	lastSelectedTime,
 	toolOnStart = true,
+	N_CONST = 1 << 0,
+	E_CONST = 1 << 1,
+	S_CONST = 1 << 2,
+	W_CONST = 1 << 3,
 
 	//make a table row with a number of cells
 	tRow = function(numCells) {
@@ -29,10 +34,27 @@ $(function() {
 		return Array.apply(null,Array(numRows+1)).join(tRow(numColumns)+"\n");
 	},
 
-	wallClick = function(x,y,direction) {
+	wallClick = function() {
+		var hIndex = horizontalPathCells.index($(this)),
+		vIndex = verticalPathCells.index($(this)),
+		x,y;
 
+		$( this ).toggleClass('selected');
+
+
+		if(hIndex != -1)
+		{
+			x = hIndex%hCellIndex;
+			y = Math.floor(hIndex/hCellIndex);
+		}
+		else
+		{
+			x = vIndex%(hCellIndex+1);
+			y = Math.floor(vIndex/(hCellIndex+1));
+		}
+			toggleWall(x,y, hIndex == -1, $( this ).hasClass('selected'));
 	},
-	cellClick = function(x,y,direction) {
+	cellClick = function() {
 		var now = new Date();
 		if($( this ).is(lastSelectedObject) && (now - lastSelectedTime) < 300)//0.3 s
 		{
@@ -54,24 +76,55 @@ $(function() {
 		lastSelectedTime = now;
 	},
 
+	toggleWall = function(x,y,isVert,isOn) {
+		if(isVert)
+		{
+			if(isOn)
+			{
+				maze.board[x][y]	|= S_CONST; //"north" cell
+				maze.board[x][y+1]	|= N_CONST; //"south" cell
+			}
+			else
+			{
+				maze.board[x][y]	&= ~S_CONST; //"north" cell
+				maze.board[x][y+1]	&= ~N_CONST; //"south" cell
+			}
+		}
+		else
+		{
+			if(isOn)
+			{
+				maze.board[x][y]	|= E_CONST; //"west" cell
+				maze.board[x+1][y]	|= W_CONST; //"east" cell
+			}
+			else
+			{
+				maze.board[x][y]	&= ~E_CONST; //"west" cell
+				maze.board[x+1][y]	&= ~W_CONST; //"east" cell
+			}
+		}
+		updateMazeCode();
+	},
+
 	//Gets the size from the input elements, then initializes the designer using them.
 	setSize = function(){
 		maze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
 		maze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
 
+		hCellIndex = maze.width - 1;
+
 		maze.start = [0,0];
 		maze.end = [0,0];
 
 		maze.board = [];
-		var temp = [];
 
-		for( var y = maze.height; y--; )
-		{
-			temp.push(0);
-		}
 		for( var x = maze.width; x--; )
 		{
-			maze.board.push(temp);
+			maze.board.push([]);
+			for( var y = maze.height; y--; )
+			{
+				maze.board[maze.width-x-1].push(0);
+			}
 		}
 
 		horizontalPathCells.off('click');
@@ -91,17 +144,13 @@ $(function() {
 			if(x < maze.width)
 			{
 				horizontalPathCells = mtbl.find(':nth-child('+(2*(maze.width*2-1))+'n-'+(2*(maze.width*2-1)-(2*x))+')')
-					.add(horizontalPathCells).addClass('mazeui').addClass('mazeUnSelectedWall');
+					.add(horizontalPathCells).addClass('mazeui').addClass('mazeWall');
 			}
 			verticalPathCells = mtbl.find(':nth-child('+(2*(maze.width*2-1))+'n-'+((maze.width*2-1)-(2*x-1))+')')
-				.add(verticalPathCells).addClass('mazeui').addClass('mazeUnSelectedWall');
+				.add(verticalPathCells).addClass('mazeui').addClass('mazeWall');
 			centerPathCells = mtbl.find(':nth-child('+(2*(maze.width*2-1))+'n-'+(2*(maze.width*2-1)-(2*x-1))+')')
 				.add(centerPathCells).addClass('mazeui').addClass('mazeCell');
 		}
-
-		//horizontalPathCells.text("--");
-		//verticalPathCells.text("|");
-		//centerPathCells.text("c");
 
 		centerPathCells.on('click', cellClick);
 		horizontalPathCells.on('click', wallClick);
