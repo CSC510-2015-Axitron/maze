@@ -8,6 +8,8 @@ $(function() {
 	},
 	mtbl = $('#maze_table'),
 	codeArea = $('#code_textarea'),
+	cellWidth = 20,//probably should find a better way to do this
+	cellHeight = 20,//make sure this and the css match exactly
 
 	//make a table row with a number of cells
 	tRow = function(numCells) {
@@ -24,10 +26,33 @@ $(function() {
 		maze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
 		maze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
 
-		mtbl.css({width:32*maze.width, height:32*maze.height});
-		mtbl.html(tTable(maze.height, maze.width));
-		mtbl.find(':nth-child(odd)').css({background:'#cac'});
-		mtbl.find(':nth-child(even)').css({background:'#acc'});
+		maze.start = [0,0];
+		maze.end = [0,0];
+
+		maze.board = [];
+		var temp = [];
+
+		for( var y = maze.height; y--; )
+		{
+			temp.push(0);
+		}
+		for( var x = maze.width; x--; )
+		{
+			maze.board.push(temp);
+		}
+
+		mtbl.css({width:cellWidth*(maze.width*2-1), height:cellHeight*(maze.height*2-1)});
+		mtbl.html(tTable(maze.height*2-1, maze.width*2-1));
+		//problem: css is applicable ALL THE TIME
+		//maybe don't use nth child
+		for(var x = 1; x < (maze.width*2-1)+1; x++)
+		{
+			mtbl.find(':nth-child('+((maze.width*2-1)*2)+'n'+x+')').css({background:'#cac'});
+		}
+		for(var x = 1; x < (maze.width*2-1)+1; x++)
+		{
+			mtbl.find(':nth-child('+(maze.width*2-1)+'n-'+((maze.width*2-1)-(2*x-1))+')').css({background:'#acc'});
+		}
 
 		updateMazeCode();
 	},
