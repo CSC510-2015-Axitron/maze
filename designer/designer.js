@@ -52,7 +52,7 @@ $(function() {
 			x = vIndex%(hCellIndex+1);
 			y = Math.floor(vIndex/(hCellIndex+1));
 		}
-			toggleWall(x,y, hIndex == -1, $( this ).hasClass('selected'));
+		toggleWall(x,y, hIndex == -1, $( this ).hasClass('selected'));
 	},
 	cellClick = function() {
 		var now = new Date();
@@ -61,19 +61,25 @@ $(function() {
 			if(toolOnStart && startDiv) startDiv.removeClass('start').text('');
 			if(!toolOnStart && endDiv) endDiv.removeClass('end').text('');
 
+			var x = centerPathCells.index($(this))%maze.width,
+			y = Math.floor(centerPathCells.index($(this))/maze.width);
+
 			if(toolOnStart)
 			{
 				$( this ).text('s').addClass('start');
 				startDiv = $( this );
+				maze.start = [x, y];
 			}
 			else
 			{
 				$( this ).text('e').addClass('end');
 				endDiv = $( this );
+				maze.end = [x, y];
 			}
 		}
 		lastSelectedObject = $( this );
 		lastSelectedTime = now;
+		updateMazeCode();
 	},
 
 	toggleWall = function(x,y,isVert,isOn) {
