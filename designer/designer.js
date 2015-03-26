@@ -43,49 +43,27 @@ $(function() {
 	wallOver = function() {
 		if(mouseDown)
 		{
-			var hIndex = horizontalPathCells.index($(this)),
-			vIndex = verticalPathCells.index($(this)),
-			x,y;
-
-			if(hIndex != -1 || vIndex != -1)
-			{
-				if(activating == undefined)
-				{
-					$( this ).toggleClass('selected');
-					activating = $( this ).hasClass('selected');
-				}
-				if(activating) $( this ).addClass('selected');
-				else $( this ).removeClass('selected');
-
-				if(hIndex != -1)
-				{
-					x = hIndex%hCellIndex;
-					y = Math.floor(hIndex/hCellIndex);
-				}
-				else
-				{
-					x = vIndex%(hCellIndex+1);
-					y = Math.floor(vIndex/(hCellIndex+1));
-				}
-				console.log(activating);
-				toggleWall(x,y, hIndex == -1, activating);
-			}
+			toggleWallCell(this);
 		}
 	},
 	
 	//called when either a horizontal or vertical wall is clicked
 	wallClick = function() {
-		var hIndex = horizontalPathCells.index($(this)),
-		vIndex = verticalPathCells.index($(this));
+		toggleWallCell(this);
+	},
+	
+	toggleWallCell = function(cell) { 
+		var hIndex = horizontalPathCells.index($(cell)),
+		vIndex = verticalPathCells.index($(cell));
 		if(hIndex != -1 || vIndex != -1)
 		{
 			if(activating == undefined)
 			{
-				$( this ).toggleClass('selected');
-				activating = $( this ).hasClass('selected');
+				$( cell ).toggleClass('selected');
+				activating = $( cell ).hasClass('selected');
 			}
-			if(activating) $( this ).addClass('selected');
-			else $( this ).removeClass('selected');
+			if(activating) $( cell ).addClass('selected');
+			else $( cell ).removeClass('selected');
 
 			if(hIndex != -1)
 			{
