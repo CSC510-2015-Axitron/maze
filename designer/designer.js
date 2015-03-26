@@ -47,29 +47,29 @@ $(function() {
 			vIndex = verticalPathCells.index($(this)),
 			x,y;
 
-			if(activating == undefined)
+			if(hIndex != -1 || vIndex != -1)
 			{
-				$( this ).toggleClass('selected');
-				activating = $( this ).hasClass('selected');
-			}
-			else
-			{
+				if(activating == undefined)
+				{
+					$( this ).toggleClass('selected');
+					activating = $( this ).hasClass('selected');
+				}
 				if(activating) $( this ).addClass('selected');
 				else $( this ).removeClass('selected');
-			}
 
-
-			if(hIndex != -1)
-			{
-				x = hIndex%hCellIndex;
-				y = Math.floor(hIndex/hCellIndex);
+				if(hIndex != -1)
+				{
+					x = hIndex%hCellIndex;
+					y = Math.floor(hIndex/hCellIndex);
+				}
+				else
+				{
+					x = vIndex%(hCellIndex+1);
+					y = Math.floor(vIndex/(hCellIndex+1));
+				}
+				console.log(activating);
+				toggleWall(x,y, hIndex == -1, activating);
 			}
-			else
-			{
-				x = vIndex%(hCellIndex+1);
-				y = Math.floor(vIndex/(hCellIndex+1));
-			}
-			toggleWall(x,y, hIndex == -1, activating);
 		}
 	},
 
@@ -182,6 +182,8 @@ $(function() {
 		centerPathCells.on('click', cellClick);
 		horizontalPathCells.on('mouseover', wallClick);
 		verticalPathCells.on('mouseover', wallClick);
+		horizontalPathCells.on('mousedown', wallClick);
+		verticalPathCells.on('mousedown', wallClick);
 
 		updateMazeCode();
 	},
@@ -195,16 +197,16 @@ $(function() {
 
 	$('#t_start').click(function(){toolOnStart = true;});
 	$('#t_end').click(function(){toolOnStart = false});
-	mazeContainer.on('mousedown', function(e){
+	$(document).on('dragstart', function(e) {
 		e.preventDefault();
+	});
+	$(document).on('mousedown', function() {
 		mouseDown = true;
 	});
-	mazeContainer.on('mouseup', function(){
+	$(document).on('mouseup', function() {
 		mouseDown = false;
 		activating = undefined;
 	});
-
-
 
 
 	toolOnStart = $('#t_start').is(':checked');
