@@ -255,9 +255,43 @@ $(function() {
 	//(Re)generates the JSON code for the maze.
 	updateMazeCode = function() {
 		codeArea.val(JSON.stringify(maze, null, 2));
-	};
+	},
+
+	loadDialogList = $('#mazeList'),
+	loadDialog = $( "#dialog-maze-load" ).dialog({
+		autoOpen: false,
+		height: 300,
+		width: 350,
+		resizable: false,
+		draggable: false,
+		modal: true,
+		buttons: {
+			Cancel: function() {
+				loadDialog.dialog( "close" );
+			}
+		},
+		close: function() {
+			loadDialogList.html("");
+		}
+	});
 
 	$.cookie.json = true;
+
+	loadDialogList.on('click', function(e) {
+		console.log($(this).data);
+	});
+
+	$('#loadB').on('click', function(e) {
+		remoteDB.HTTPGetAsync('/mazes/user/'+remoteDB.userID, function(data){
+			if(!(data && data.userid && data.mazes)) return console.log(data);
+			var htmlList = [];
+			data.mazes.forEach(function(item,idx){
+				htmlList[idx] = '<li><a href="#" data='+item.mazeno+'>'+item.displayName+'</a></li>';
+			});
+			loadDialogList.html(htmlList.join('\n'));
+			loadDialog.dialog( "open" );
+		});
+	});
 
 
 
