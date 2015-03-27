@@ -99,11 +99,27 @@ var remoteDB = {
 		});
 	},
 
-	login: function(email, token, userID) {
-		this.user = email;
-		this.token = token;
-		this.userID = userID;
-		this.isLogon = true;
+	verifyCookie: function(cookie) {
+		if (typeof cookie == "undefined") return false;
+		this.token = cookie.token; //check in token first
+		if (this.HTTPGet("/keepalive").response == true) {
+			this.user = cookie.email;
+			this.userID = cookie.userID;
+			this.isLogon = true;
+			this.startSession();
+			return true;
+		}
+		else {
+			remoteDB.user = "anonymous";
+			remoteDB.token = "";
+			remoteDB.userID = 0;
+			remoteDB.isLogon = false;
+			clearInterval(this.sessionHandler);
+			return false;
+		}
+	},
+
+	startSession: function() {
 		this.sessionHandler = setInterval(function() {
 			this.HTTPGetAsync("/keepalive", function(e) {
 				if (e.response != true) {
@@ -111,6 +127,14 @@ var remoteDB = {
 				}
 			});
 		}, this.sessionTimeout*60*1000);
+	},
+
+	login: function(email, token, userID) {
+		this.user = email;
+		this.token = token;
+		this.userID = userID;
+		this.isLogon = true;
+		this.startSession();
 
 		//retrieve user owned mazes
 		this.getCategoryByUserID(this.userID);
@@ -152,7 +176,7 @@ var remoteDB = {
 	getMazeByMazeno: function(mazeno) {
 		maze.userData.TimerOff(); //stop the timer
 		var obj = this.HTTPGet("/maze/"+(this.currMazeID=mazeno).toString());
-		this.currentMaze = JSON.parse(obj.mazeJSON);
+		this.currMazeObj = JSON.parse(obj.mazeJSON);
 		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
 	},
 
@@ -194,14 +218,14 @@ var remoteDB = {
 		}
 
 		var obj = this.HTTPGet("/maze/"+this.currMazeID.toString());
-		this.currentMaze = JSON.parse(obj.mazeJSON);
+		this.currMazeObj = JSON.parse(obj.mazeJSON);
 		currentMazeFile = obj.displayName;
 
-		return this.currentMaze;
+		return this.currMazeObj;
 	},
 
 	getCurrentMaze: function() {
-		return this.currentMaze;
+		return this.currMazeObj;
 	},
 
 	updateStatus: function(time, steps) {
@@ -788,8 +812,15 @@ function setGameCanvas(loaded) {
 };
 
 $(function() {
+	$.cookie.json = true;
 	$('#user_info').hide();
 	$('#menu_designer').hide();
+	if (remoteDB.verifyCookie($.cookie('userAcc'))) {
+		$('#menu_designer').show();
+		$('#user_info').show();
+		$('#user_id').text("USER: "+remoteDB.user);
+		$('#menu_login').text('Logout');
+	}
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
 	login = function() {
@@ -822,6 +853,7 @@ $(function() {
 				$('#user_info').show();
 				$('#user_id').text("USER: "+email);
 				$('#menu_login').text('Logout');
+				$.cookie('userAcc', {email: email, token: data.token, userID: data.userid}, {expires: 1, path: '/'});
 			});
 		else
 			if(email.length < 1)
@@ -968,6 +1000,7 @@ $(function() {
 				$('#user_info').hide();
 				$('#user_id').text("");
 				$('#menu_designer').hide();
+				$.removeCookie('userAcc', {path: '/'});
 			}
 		}
 	});

@@ -138,6 +138,10 @@ $.ajax = function(obj) {
 		return httpObj;
 }
 
+// jquery cookie
+$.cookie = function(name, cookie, params) {this.cookieStatus = "created";this.name = name; this.cookie = cookie, this.params = params;}
+$.removeCookie = function(name, params){this.cookieStatus = 'removed';}
+
 //Amaze model mock object
 AMaze = {};
 AMaze.model = {
