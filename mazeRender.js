@@ -250,44 +250,49 @@ AMaze.render.MazeRenderer.prototype.refresh = function() {
 			var bgCtx = this.bgCanvas.getContext('2d'),
 			cacheCoords = [Math.max(this.maze.currPos[0]*this.style.cellSize[0]-(this.actualWidth/2-pls.naturalWidth/2),0), Math.max(this.maze.currPos[1]*this.style.cellSize[1]-(this.actualHeight/2-pls.naturalHeight/2),0)];
 			
-			if (typeof AMaze.render.lastMazeUL == "undefined") {AMaze.render.lastMazeUL = tmpMazeUL;
+			if (typeof AMaze.render.lastMazeUL == "undefined") {AMaze.render.lastMazeUL = tmpMazeUL; AMaze.render.lastCoords = cacheCoords;
 
-			bgCtx.clearRect(0,0,this.bgCanvas.width, this.bgCanvas.height);
-			//cropping out a section of the cached image
-			bgCtx.drawImage(this.cacheCanvas,
+				bgCtx.clearRect(0,0,this.bgCanvas.width, this.bgCanvas.height);
+				//cropping out a section of the cached image
+				bgCtx.drawImage(this.cacheCanvas,
 				cacheCoords[0], cacheCoords[1], Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]),
 				Math.max(this.displayMazeUL[0],0), Math.max(this.displayMazeUL[1],0), Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]));
 			
-			//trailModel 
-			if (AMaze.model.trailOn)
-			{
-				this.trailModel.makeTrailV2(this.cacheTrail, this.maze.currPos, this.style.cellSize, this.canvasEngine);
+				//trailModel 
+				if (AMaze.model.trailOn)
+				{
+					this.trailModel.makeTrailV2(this.cacheTrail, this.maze.currPos, this.style.cellSize, this.canvasEngine);
 
-				//bgCtx.drawImage(this.cacheTrail,
-				//cacheCoords[0], cacheCoords[1], Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]),
-				//Math.max(this.displayMazeUL[0],0), Math.max(this.displayMazeUL[1],0), Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]));
+					//bgCtx.drawImage(this.cacheTrail,
+					//cacheCoords[0], cacheCoords[1], Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]),
+					//Math.max(this.displayMazeUL[0],0), Math.max(this.displayMazeUL[1],0), Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]));
 			}
 
 			}
 			else {
 				//prepare parameters for FPS renderer to work
-				var time4Step = 500; //ms, how much time each step should last
-				AMaze.render.FPS = 50, //minimum should be 25 but use 50 for higher frame rate
-				AMaze.render.framePerStep = time4Step*AMaze.render.FPS/1000;
-				AMaze.render.dx = (tmpMazeUL[0] - AMaze.render.lastMazeUL[0])/AMaze.render.framePerStep;
-				AMaze.render.dy = (tmpMazeUL[1] - AMaze.render.lastMazeUL[1])/AMaze.render.framePerStep;
-				AMaze.render.x = AMaze.render.lastMazeUL[0];
-				AMaze.render.y = AMaze.render.lastMazeUL[1];
-				AMaze.render.FPScounter = 0;
+				var time4Step = 300; //ms, how much time each step should last
+				var a = AMaze.render; //shorthand
+				a.FPS = 50, //minimum should be 25 but use 50 for higher frame rate
+				a.framePerStep = time4Step*AMaze.render.FPS/1000;
+				a.dx = (tmpMazeUL[0] - a.lastMazeUL[0])/a.framePerStep;
+				a.dy = (tmpMazeUL[1] - a.lastMazeUL[1])/a.framePerStep;
+				a.x = a.lastMazeUL[0];
+				a.y = a.lastMazeUL[1];
+				a.sdx = (cacheCoords[0] - a.lastCoords[0])/a.framePerStep;
+				a.sdy = (cacheCoords[1] - a.lastCoords[1])/a.framePerStep;
+				a.sx = a.lastCoords[0];
+				a.sy = a.lastCoords[1];
+				a.FPScounter = 0;
 
-				AMaze.render.bgCanvas = this.bgCanvas;
-				AMaze.render.cacheCanvas = this.cacheCanvas;
-				AMaze.render.cacheTrail = this.trailModel;
-				AMaze.render.actualHeight = this.actualHeight;
-				AMaze.render.actualWidth = this.actualWidth;
-				AMaze.render.lastMazeUL = tmpMazeUL;
-
-				AMaze.render.cacheCoords = cacheCoords;
+				a.bgCanvas = this.bgCanvas;
+				a.cacheCanvas = this.cacheCanvas;
+				a.cacheTrail = this.cacheTrail;
+				a.actualHeight = this.actualHeight;
+				a.actualWidth = this.actualWidth;
+				a.lastMazeUL = tmpMazeUL;
+				a.lastCoords = cacheCoords;
+				clearInterval(AMaze.render.FPS_handler);
 
 				// Knight animation code can go here!
 				// Allow Async so no blocking!
@@ -301,8 +306,8 @@ AMaze.render.MazeRenderer.prototype.refresh = function() {
 						bgCtx = that.bgCanvas.getContext('2d');
 						var currX = that.x+that.dx*that.FPScounter,
 							currY = that.y+that.dy*that.FPScounter,
-							sx = AMaze.render.cacheCoords[0],
-							sy = AMaze.render.cacheCoords[1];
+							sx = that.sx+that.sdx*that.FPScounter,
+							sy = that.sy+that.sdy*that.FPScounter;
 
 						bgCtx.clearRect(0,0,that.bgCanvas.width, that.bgCanvas.height);
 						
@@ -321,7 +326,6 @@ AMaze.render.MazeRenderer.prototype.refresh = function() {
 					}
 					else {
 						clearInterval(AMaze.render.FPS_handler);
-						AMaze.model.lastCoords = cacheCoords;
 					}
 
 				}, 1/AMaze.render.FPS*1000);
