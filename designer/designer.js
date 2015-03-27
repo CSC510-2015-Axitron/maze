@@ -46,13 +46,14 @@ $(function() {
 			toggleWallCell(this);
 		}
 	},
-	
+
 	//called when either a horizontal or vertical wall is clicked
 	wallClick = function() {
 		toggleWallCell(this);
+		updateMazeCode();
 	},
-	
-	toggleWallCell = function(cell) { 
+
+	toggleWallCell = function(cell) {
 		var hIndex = horizontalPathCells.index($(cell)),
 		vIndex = verticalPathCells.index($(cell));
 		if(hIndex != -1 || vIndex != -1)
@@ -75,7 +76,6 @@ $(function() {
 				x = vIndex%(hCellIndex+1);
 				y = Math.floor(vIndex/(hCellIndex+1));
 			}
-			console.log(activating);
 			toggleWall(x,y, hIndex == -1, activating);
 		}
 	},
@@ -136,7 +136,6 @@ $(function() {
 				maze.board[x+1][y]	&= ~W_CONST; //"east" cell
 			}
 		}
-		updateMazeCode();
 	},
 
 	//Gets the size from the input elements, then initializes the designer using them.
@@ -213,6 +212,8 @@ $(function() {
 	$(document).on('mouseup', function() {
 		mouseDown = false;
 		activating = undefined;
+
+		updateMazeCode();
 	});
 
 
