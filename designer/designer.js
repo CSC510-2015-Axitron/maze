@@ -25,6 +25,10 @@ $(function() {
 	S_CONST = 1 << 2,
 	W_CONST = 1 << 3,
 
+	//editing mazes
+	editingMazeNo,
+	editingMazeName = $('#displayName'),
+
 	mouseDown = false,
 	//whether the first cell mousedown'd into was inactive (activating = true) or active (activating = false)
 	activating = undefined,
@@ -230,6 +234,8 @@ $(function() {
 	//Gets the size from the input elements, then initializes the designer using them.
 	setSize = function() {
 		var tempMaze = {};
+		editingMazeName.val('No Name');
+		editingMazeNo = undefined;
 		tempMaze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
 		tempMaze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
 
@@ -255,7 +261,109 @@ $(function() {
 	//(Re)generates the JSON code for the maze.
 	updateMazeCode = function() {
 		codeArea.val(JSON.stringify(maze, null, 2));
-	};
+	},
+
+	loadDialogList = $('#mazeList'),
+	loadDialog = $( "#dialog-maze-load" ).dialog({
+		autoOpen: false,
+		height: 300,
+		width: 350,
+		resizable: false,
+		draggable: false,
+		modal: true,
+		buttons: {
+			Cancel: function() {
+				loadDialog.dialog( "close" );
+			}
+		},
+		close: function() {
+			loadDialogList.html("");
+		}
+	}),
+
+	saveDialog = $('#dialog-maze-save').dialog({
+		autoOpen: false,
+		height: 100,
+		width: 350,
+		modal: true
+	}),
+
+	loadingDialog = $('#message-loading').dialog({
+		autoOpen: false,
+		dialogClass: 'no-close',
+		height: 300,
+		width: 350,
+		modal: true
+	});
+
+	$.cookie.json = true;
+
+	loadDialogList.on('click', 'a', function(e) {
+		e.preventDefault();
+		var mazeID = parseInt($(this)[0].id);
+		loadDialog.dialog('close');
+		loadingDialog.dialog('open');
+		remoteDB.HTTPGetAsync('/maze/'+mazeID, function(data){
+			if(!(data && data.mazeJSON && data.mazeno && data.displayName)) {loadingDialog.dialog('close'); return console.log(data);}
+			var newMaze = JSON.parse(data.mazeJSON);
+			editingMazeNo = data.mazeno;
+			editingMazeName.val(data.displayName);
+			updateBoard(newMaze);
+			loadingDialog.dialog('close');
+		});
+	});
+
+	$('#loadB').on('click', function(e) {
+		remoteDB.HTTPGetAsync('/mazes/user/'+remoteDB.userID, function(data){
+			if(!(data && data.userid && data.mazes)) return console.log(data);
+			var htmlList = [];
+			data.mazes.forEach(function(item,idx){
+				htmlList[idx] = '<li><a href="#" id='+item.mazeno+'>'+item.displayName+'</a></li>';
+			});
+			loadDialogList.html(htmlList.join('\n'));
+			loadDialog.dialog( "open" );
+		});
+	});
+
+	$('#saveB').on('click', function(e) {
+		var buttons = {
+			"Save as New": function() {
+				var saveMaze = checkTextAreaInput();
+				if(saveMaze != null)
+				{
+					remoteDB.HTTPPostAsync('/maze', {"name":editingMazeName.val(),"maze":saveMaze}, function(data){
+						if(!(data && data.mazeno)){ done(); return console.log(data); }
+						editingMazeNo = data.mazeno;
+						done();
+					});
+				}
+				else
+					done();
+			}
+		},
+		done = function() {saveDialog.dialog( "close" );};
+		if(editingMazeNo != undefined)
+		{
+			buttons['Overwrite'] = function() {
+				var saveMaze = checkTextAreaInput();
+				if(saveMaze != null)
+				{
+					remoteDB.HTTPPostAsync('/maze/'+editingMazeNo, {"name":editingMazeName.val(),"maze":saveMaze}, function(data){
+						if(!(data && data.response && data.response === 'maze updated')){ done(); return console.log(data);}
+						done();
+					});
+				}
+				else
+					done();
+			};
+		}
+		buttons["Cancel"] = done;
+		saveDialog.dialog('option', 'buttons', buttons);
+		saveDialog.dialog('open');
+	});
+
+
+
 
 	$('#updateSize').click(setSize);
 
@@ -285,6 +393,15 @@ $(function() {
 
 		updateMazeCode();
 	});
+
+	if (remoteDB.verifyCookie($.cookie('userAcc'))) {
+		$('#loadsavebuttons').show();
+		$('#user_id').text("USER: "+remoteDB.user);
+	}
+	else
+	{
+		$('#loadsavebuttons').hide();
+	}
 
 
 	toolOnStart = $('#t_start').is(':checked');
