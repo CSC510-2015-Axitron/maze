@@ -257,6 +257,11 @@ $(function() {
 		codeArea.val(JSON.stringify(maze, null, 2));
 	};
 
+	$.cookie.json = true;
+
+
+
+
 	$('#updateSize').click(setSize);
 
 	$('#t_start').click(function(){toolOnStart = true;});
@@ -285,6 +290,15 @@ $(function() {
 
 		updateMazeCode();
 	});
+
+	if (remoteDB.verifyCookie($.cookie('userAcc'))) {
+		$('#loadsavebuttons').show();
+		$('#user_id').text("USER: "+remoteDB.user);
+	}
+	else
+	{
+		$('#loadsavebuttons').hide();
+	}
 
 
 	toolOnStart = $('#t_start').is(':checked');

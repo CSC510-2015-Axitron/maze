@@ -1,6 +1,8 @@
 <html class="mazeui">
 <head>
   <script type="text/javascript" src="../jquery-2.1.3.min.js"></script>
+  <script type="text/javascript" src="../remoteDB.js"></script>
+  <script type="text/javascript" src="../jquery.cookie.js"></script>
   <script type="text/javascript" src="./designer.js"></script>
   <link rel="stylesheet" type="text/css" href="../maze.css">
   <meta charset='utf-8'>
@@ -22,6 +24,13 @@
 				<input type='radio' name='tool' id='t_start' checked class="mazeui"> <label for='t_start'>Set Start</label>
 				<input type='radio' name='tool' id='t_end' class="mazeui"> <label for='t_finish'>Set Finish</label>
 			</span>
+		</span>
+	</div>
+	<div class="panel mazeui" id="loadsavebuttons">
+		<span id="user_id" class="button mazeui"></span>
+		<span id="buttons" class="mazeui">
+			<a href="#" class="button mazeui" id="load">Load</a>
+			<a href="#" class="button mazeui" id="save">Save</a>
 		</span>
 	</div>
 
