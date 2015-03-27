@@ -19,7 +19,26 @@ mazeDirectory =
 	'medium': [],
 	'large': [],
 	'huge': []
-}
+};
+
+var categories =[
+    {
+        "id": 1,
+        "name": "Small Mazes (5-10)"
+    },
+    {
+        "id": 101,
+        "name": "Medium Mazes (10-20)"
+    },
+    {
+        "id": 201,
+        "name": "Large Mazes (20-30)"
+    },
+    {
+        "id": 301,
+        "name": "Huge Mazes (30+)"
+    }
+];
 
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
@@ -175,7 +194,6 @@ var remoteDB = {
 		}
 		else
 		{
-
 			var notFound = true;
 			var count = 0;
 
@@ -956,10 +974,39 @@ $(function() {
 		console.log("goto button is pressed.");
 	});
 
-	$("#menu_level").click(function() {
-		console.log("level button is pressed.");
-	});
 
+	//Side menu related stuff starts here
+
+	$('#menu_level').sidr({
+      name: 'sidr', 
+      speed: 200, 
+      side: 'left',
+      source: null, 
+      renaming: true, 
+      body: 'body'
+
+    });
+
+	buildCats();
+    $('.sub-menu-sidr').hide();
+
+    $("#sidr li:has(ul)").click(function(){
+        $("ul",this).toggle('fast');
+    });
+
+    $("ul").on('click', 'li', function(){
+      var curId = $(this).attr('id');
+      if(curId !== undefined){
+      	console.log("curId is " + curId);
+      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
+      	console.log("object is " + obj.mazeJSON);
+		this.currentMaze = JSON.parse(obj.mazeJSON);
+		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+      }
+    });
+
+
+    //Side menu related stuff ends here
 	$("#menu_login").click(function() {
 		if (!remoteDB.isLogon) loginDialog.dialog("open");
 		else {
@@ -972,12 +1019,31 @@ $(function() {
 		}
 	});
 
+	 
+
 	$("#menu_load").click(function() {
 		console.log("load button is pressed.");
 	});
-
-
 });
+
+//Side menu related function
+var buildCats = function (){
+    var sub
+    for(var i = 0; i < categories.length; i++){  
+        apiClient.getMazesInCategory(categories[i].id, function(resp){
+            var count = 1;
+            for(var j = 0; j < resp.mazes.length; j++){
+                var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
+                sub = $('#sub' + (count));
+                sub.append(x);
+                console.log("Count is " + count);
+            }
+            //I just did this weird count thing because something bizzare was happening to i
+            //I'm assuming it has something to do with the async part of this.
+            count++;
+        });
+    };
+};
 
 //Check to see if we are in node or the browser.
 if (typeof exports !== 'undefined'){
