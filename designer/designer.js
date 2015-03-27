@@ -162,6 +162,8 @@ $(function() {
 		horizontalPathCells.off('mouseover');
 		verticalPathCells.off('mouseover');
 		centerPathCells.off('click');
+		horizontalPathCells.off('mousedown');
+		verticalPathCells.off('mousedown');
 
 		mtbl.css({width:cellWidth*(maze.width*2-1), height:cellHeight*(maze.height*2-1)});
 		mtbl.html(tTable(maze.height*2-1, maze.width*2-1));
