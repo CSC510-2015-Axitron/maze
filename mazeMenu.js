@@ -310,6 +310,7 @@ function resetStatus() {
 // user data per level
 // initTime should be Date.now()
 // by default timer is on
+var theUserData = new userData(0);
 function userData(initTime){
 
         var startTime = initTime;
@@ -332,6 +333,11 @@ function userData(initTime){
   			var minutes = Math.floor(totalSeconds/60);
   			var seconds = totalSeconds - minutes * 60;
   			return this.pad(minutes, 2) + ':' + this.pad(seconds, 2);
+        }
+
+        this.resetTimer = function() {
+        	startTime = Date.now();
+        	counter = 0;
         }
 
         this.TimerOff = function() {
@@ -749,7 +755,8 @@ function setGameCanvas(loaded) {
 				mouseAction.setMazeModel(modelTest);
 
 				//piggyback on Amaze model
-				modelTest.userData = new userData(Date.now());
+				theUserData.resetTimer();
+				modelTest.userData = theUserData;
 				modelTest.gameData = gameData; //make gameData testable
 				resetStatus();
 
