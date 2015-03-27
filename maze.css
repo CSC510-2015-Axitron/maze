@@ -178,3 +178,6 @@ span.mazeui {
 	background-color:#d33;
 	color:#fff;
 }
+
+
+.no-close .ui-dialog-titlebar-close {display: none }
