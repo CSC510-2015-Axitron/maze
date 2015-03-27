@@ -67,7 +67,7 @@ var remoteDB = {
 				"authorization":remoteDB.token,
 				"content-type":"application/json"
 			},
-			success: function(data) {console.log(data); func(data);},
+			success: function(data) {func(data);},
 			error: function(data) {func(JSON.parse(data.responseText));}
 		});
 	},
@@ -94,9 +94,9 @@ var remoteDB = {
 
 	startSession: function() {
 		this.sessionHandler = setInterval(function() {
-			this.HTTPGetAsync("/keepalive", function(e) {
+			remoteDB.HTTPGetAsync("/keepalive", function(e) {
 				if (e.response != true) {
-					this.logout();
+					remoteDB.logout();
 				}
 			});
 		}, this.sessionTimeout*60*1000);
