@@ -254,7 +254,6 @@ $(function() {
 
 	//(Re)generates the JSON code for the maze.
 	updateMazeCode = function() {
-		console.log('writing ' + maze.board.length);
 		codeArea.val(JSON.stringify(maze, null, 2));
 	};
 
