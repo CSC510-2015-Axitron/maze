@@ -170,6 +170,8 @@ $(function() {
 		maze.end = mazeObject.end;
 		maze.board = mazeObject.board;
 
+		hCellIndex = maze.width - 1;
+
 		horizontalPathCells.off('mouseover');
 		verticalPathCells.off('mouseover');
 		centerPathCells.off('click');
@@ -203,19 +205,24 @@ $(function() {
 		horizontalPathCells.on('mousedown', wallClick);
 		verticalPathCells.on('mousedown', wallClick);
 
+		startDiv = $(centerPathCells[maze.start[0]+maze.start[1]*maze.width]);
+		startDiv.addClass('start');
+		endDiv = $(centerPathCells[maze.end[0]+maze.end[1]*maze.width]);
+		endDiv.addClass('end');
+
 		for(var x = 0; x < maze.width; x++)
 		{
 			for(var y = 0; y < maze.height; y++)
 			{
 				if((maze.board[x][y] & S_CONST) == S_CONST)
-					$(verticalPathCells[(x+y*(hCellIndex+1)+1)]).addClass('selected');
+					$(verticalPathCells[(x+y*(hCellIndex+1))]).addClass('selected');
 				if((maze.board[x][y] & N_CONST) == N_CONST)
-					$(verticalPathCells[(x+(y-1)*(hCellIndex+1)+1)]).addClass('selected');
+					$(verticalPathCells[(x+(y-1)*(hCellIndex+1))]).addClass('selected');
 
 				if((maze.board[x][y] & E_CONST) == E_CONST)
-					$(horizontalPathCells[(x+y*hCellIndex+1)]).addClass('selected');
+					$(horizontalPathCells[(x+y*hCellIndex)]).addClass('selected');
 				if((maze.board[x][y] & W_CONST) == W_CONST)
-					$(horizontalPathCells[((x-1)+y*hCellIndex+1)]).addClass('selected');
+					$(horizontalPathCells[((x-1)+y*hCellIndex)]).addClass('selected');
 			}
 		}
 	},
@@ -225,8 +232,6 @@ $(function() {
 		var tempMaze = {};
 		tempMaze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
 		tempMaze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
-
-		hCellIndex = tempMaze.width - 1;
 
 		tempMaze.start = [0,0];
 		tempMaze.end = [0,0];
@@ -249,7 +254,8 @@ $(function() {
 
 	//(Re)generates the JSON code for the maze.
 	updateMazeCode = function() {
-		codeArea.text(JSON.stringify(maze, null, 2));
+		console.log('writing ' + maze.board.length);
+		codeArea.val(JSON.stringify(maze, null, 2));
 	};
 
 	$('#updateSize').click(setSize);
