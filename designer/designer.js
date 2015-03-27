@@ -138,26 +138,37 @@ $(function() {
 		}
 	},
 
-	//Gets the size from the input elements, then initializes the designer using them.
-	setSize = function(){
-		maze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
-		maze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
-
-		hCellIndex = maze.width - 1;
-
-		maze.start = [0,0];
-		maze.end = [0,0];
-
-		maze.board = [];
-
-		for( var x = maze.width; x--; )
+	checkTextAreaInput = function() {
+		try
 		{
-			maze.board.push([]);
-			for( var y = maze.height; y--; )
+			var obj = JSON.parse(codeArea.val()), correctLength = true;
+			if(!(obj && obj.start && obj.end && obj.board && obj.width && obj.height)) throw 'structure';
+			if(!(obj.start.length == 2 && obj.end.length == 2 && obj.board.length == obj.width && obj.board[0].length == obj.height)) throw 'lengths';
+			if(!(obj.start[0] >= 0 && obj.start[0] < obj.width && obj.start[1] >= 0 && obj.start[1] >= 0 && obj.start[1] < obj.height)) throw 'start';
+			if(!(obj.end[0] >= 0 && obj.end[0] < obj.width && obj.end[1] >= 0 && obj.end[1] >= 0 && obj.end[1] < obj.height)) throw 'end';
+
+			for(var x = 0; x < obj.width; x++)
 			{
-				maze.board[maze.width-x-1].push(0);
+				if(obj.board[x].length != obj.height)
+					correctLength = false;
 			}
+			if(!correctLength) throw 'not square';
+
+			return obj;
 		}
+		catch(e)
+		{
+			console.log(e);
+			return null;
+		}
+	},
+
+	updateBoard = function(mazeObject) {
+		maze.width = mazeObject.width;
+		maze.height = mazeObject.height;
+		maze.start = mazeObject.start;
+		maze.end = mazeObject.end;
+		maze.board = mazeObject.board;
 
 		horizontalPathCells.off('mouseover');
 		verticalPathCells.off('mouseover');
@@ -192,6 +203,46 @@ $(function() {
 		horizontalPathCells.on('mousedown', wallClick);
 		verticalPathCells.on('mousedown', wallClick);
 
+		for(var x = 0; x < maze.width; x++)
+		{
+			for(var y = 0; y < maze.height; y++)
+			{
+				if((maze.board[x][y] & S_CONST) == S_CONST)
+					$(verticalPathCells[(x+y*(hCellIndex+1)+1)]).addClass('selected');
+				if((maze.board[x][y] & N_CONST) == N_CONST)
+					$(verticalPathCells[(x+(y-1)*(hCellIndex+1)+1)]).addClass('selected');
+
+				if((maze.board[x][y] & E_CONST) == E_CONST)
+					$(horizontalPathCells[(x+y*hCellIndex+1)]).addClass('selected');
+				if((maze.board[x][y] & W_CONST) == W_CONST)
+					$(horizontalPathCells[((x-1)+y*hCellIndex+1)]).addClass('selected');
+			}
+		}
+	},
+
+	//Gets the size from the input elements, then initializes the designer using them.
+	setSize = function() {
+		var tempMaze = {};
+		tempMaze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
+		tempMaze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
+
+		hCellIndex = tempMaze.width - 1;
+
+		tempMaze.start = [0,0];
+		tempMaze.end = [0,0];
+
+		tempMaze.board = [];
+
+		for( var x = tempMaze.width; x--; )
+		{
+			tempMaze.board.push([]);
+			for( var y = tempMaze.height; y--; )
+			{
+				tempMaze.board[tempMaze.width-x-1].push(0);
+			}
+		}
+
+		updateBoard(tempMaze);
 
 		updateMazeCode();
 	},
@@ -205,6 +256,18 @@ $(function() {
 
 	$('#t_start').click(function(){toolOnStart = true;});
 	$('#t_end').click(function(){toolOnStart = false});
+	codeArea.on('keydown', function(e){
+		if(e.keyCode == 13)
+		{
+			var tempBoard = checkTextAreaInput();
+			if(tempBoard != null) updateBoard(tempBoard);
+			return false;
+		}
+	});
+
+
+
+
 	$(document).on('dragstart', function(e) {
 		e.preventDefault();
 	});
