@@ -27,6 +27,7 @@ $(function() {
 
 	//editing mazes
 	editingMazeNo,
+	mazeNoDisplay = $('#mazeno'),
 	editingMazeName = $('#displayName'),
 
 	mouseDown = false,
@@ -235,6 +236,7 @@ $(function() {
 	setSize = function() {
 		var tempMaze = {};
 		editingMazeName.val('No Name');
+		mazeNoDisplay.text('--');
 		editingMazeNo = undefined;
 		tempMaze.width = Math.max(parseInt($('#width').val()) || 10, 5);//either a valid integer > 5 or 10
 		tempMaze.height = Math.max(parseInt($('#height').val()) || 10, 5);//either a valid integer > 5 or 10
@@ -283,8 +285,8 @@ $(function() {
 
 	saveDialog = $('#dialog-maze-save').dialog({
 		autoOpen: false,
-		height: 100,
-		width: 350,
+		height: 50,
+		width: 500,
 		modal: true
 	}),
 
@@ -307,6 +309,7 @@ $(function() {
 			if(!(data && data.mazeJSON && data.mazeno && data.displayName)) {loadingDialog.dialog('close'); return console.log(data);}
 			var newMaze = JSON.parse(data.mazeJSON);
 			editingMazeNo = data.mazeno;
+			mazeNoDisplay.text(editingMazeNo);
 			editingMazeName.val(data.displayName);
 			updateBoard(newMaze);
 			loadingDialog.dialog('close');
@@ -334,6 +337,7 @@ $(function() {
 					remoteDB.HTTPPostAsync('/maze', {"name":editingMazeName.val(),"maze":saveMaze}, function(data){
 						if(!(data && data.mazeno)){ done(); return console.log(data); }
 						editingMazeNo = data.mazeno;
+						mazeNoDisplay.text(editingMazeNo);
 						done();
 					});
 				}
