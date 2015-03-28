@@ -997,7 +997,7 @@ $(function() {
     $("ul").on('click', 'li', function(){
       var curId = $(this).attr('id');
       if(curId !== undefined){
-      	console.log("curId is " + curId);
+      	//console.log("curId is " + curId);
       	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
       	console.log("object is " + obj.mazeJSON);
 		this.currentMaze = JSON.parse(obj.mazeJSON);
@@ -1029,18 +1029,17 @@ $(function() {
 //Side menu related function
 var buildCats = function (){
     var sub
+    var count = 0;
     for(var i = 0; i < categories.length; i++){  
         apiClient.getMazesInCategory(categories[i].id, function(resp){
-            var count = 1;
+            //console.log("resp is " + resp);
+            count++;
             for(var j = 0; j < resp.mazes.length; j++){
                 var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
                 sub = $('#sub' + (count));
                 sub.append(x);
-                console.log("Count is " + count);
+                //console.log("count is  " + count);
             }
-            //I just did this weird count thing because something bizzare was happening to i
-            //I'm assuming it has something to do with the async part of this.
-            count++;
         });
     };
 };
