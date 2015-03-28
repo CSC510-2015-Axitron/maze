@@ -7,6 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "npm run mocha && npm run jshint",
+    "postinstall": "./node_modules/.bin/grunt",
     "mocha": "./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- -u bdd -R spec",
     "jshint": "./node_modules/.bin/jshint . --reporter node_modules/jshint-html-reporter/reporter.js > report.html ;true",
     "jshint-cli": "./node_modules/.bin/jshint . --reporter node_modules/jshint-stylish/stylish.js ;true"
@@ -32,6 +33,10 @@
   },
   "dependencies": {
     "express": "~4.12.2",
-    "rest": "^1.3.0"
+    "rest": "^1.3.0",
+    "grunt-contrib-copy": "~0.8.0",
+    "grunt-cli": "~0.1.13",
+    "grunt-contrib-uglify": "~0.8.0",
+    "grunt": "~0.4.5"
   }
 }
