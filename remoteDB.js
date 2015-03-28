@@ -140,7 +140,7 @@ var remoteDB = {
 		//use async AJAX to load the rest of categories
 		for (var i = 1; i < this.categories.length; ++i)
 		{
-			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[i] = e;});
+			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[parseInt(e.category.toString().substring(0,1))] = e;});
 		}
 
 	},
