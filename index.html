@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html class="mazeui">
+
+<head>
+  <title>Amazing Mazes</title>
+  <link rel="stylesheet" type="text/css" href="maze.css">
+  <link rel="stylesheet" type="text/css" href="jquery-ui.min.css">
+  <meta charset='utf-8'>
+</head>
+
+<body class="mazeui">
+
+<!-- login form -->
+<div id="login-form" title="Login">
+	<p class="validateTips">All form fields are required.</p>
+	<form>
+		<fieldset>
+			<label for="email">Email</label>
+			<input type="text" name="email" id="login_email" placeholder="super@cool.email" value="" class="text ui-widget-content ui-corner-all">
+
+			<label for="password">Password</label>
+			<input type="password" name="password" id="login_password" placeholder="Sup3rS3cr3tP4ssw0rd" value="" class="text ui-widget-content ui-corner-all">
+
+			<!-- Allow form submission with keyboard without duplicating the dialog button -->
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+
+<!-- login messages -->
+<div id="message-login-invalid-email" title="Invalid Email">
+	<p>
+		<span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+		Unknown user email.
+	</p>
+</div>
+<div id="message-login-invalid-login" title="Invalid Login">
+	<p>
+		<span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+		Invalid login credentials.
+	</p>
+</div>
+<div id="message-login-loggedin" title="Logged In">
+	<p>
+		<span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+		Successfully logged in.
+	</p>
+</div>
+
+
+<!-- regsitration messages -->
+<div id="message-registration-dup-email" title="Duplicate Email">
+	<p>
+		<span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+		Email already in use, please login or use a different email.
+	</p>
+</div>
+<div id="message-registration-registered" title="Registered">
+	<p>
+		<span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
+		Successfully registered.
+	</p>
+</div>
+
+<!-- visible parts of the page -->
+	<div id="menu" class="container mazeui">
+		<div class="panel mazeui">
+			<span id="info" class="mazeui">
+				Level:
+				<span id="dsp_level" class="mazeui">
+					01
+				</span>
+				Time:
+				<span id="dsp_time" class="mazeui">
+					0:00
+				</span>
+				Steps:
+				<span id="dsp_steps" class="mazeui">
+					0
+				</span>
+				Score:
+				<span id="dsp_score" class="mazeui">
+					0
+				</span>
+			</span>
+		</div>
+
+		<div class="panel mazeui">
+		  <span id="buttons" class="mazeui">
+			  <a href="#" id="menu_new" class="button mazeui">Restart</a>
+			  <a href="#" id="menu_goto" class="button mazeui">Goto</a>
+			  <a href="#" id="menu_level" class="button mazeui">Level</a>
+			  <a href="./designer/index.html" id="menu_designer" class="button mazeui">Create</a>
+			  <a href="#" id="menu_load" class="button mazeui">Load</a>
+			  <a href="#" id="menu_login" class="button mazeui">Login</a>
+		  </span>
+		</div>
+		<div id = "user_info" class="mazeui"><span id="user_id" class="button mazeui"></span></div>
+
+		<div id="canvases" class="mazeui">
+		  <canvas id="bgcanvas" width=640 height=480 class="real mazeui"
+			  style="z-index: 0;"></canvas>
+		  <canvas id="canvas_id" width=640 height=480 class="real mazeui"
+			  style="z-index: 1; background-color: transparent;"></canvas>
+		</div>
+	</div>
+
+  <script type="text/javascript" src="./jquery-2.1.3.min.js"></script>
+  <script type="text/javascript" src="./jquery-ui.min.js"></script>
+  <script type="text/javascript" src="./jquery.cookie.js"></script>
+  <script type="text/javascript" src="./remoteDB.js"></script>
+  <script type="text/javascript" src="./mazeMenu.js"></script>
+
+  <script type="text/javascript" src="./buzz.min.js"></script>
+  <script type="text/javascript" src="./canvasengine-1.3.2.all.min.js"></script>
+  <script type="text/javascript" src="./mazeModel.js"></script>
+  <script type="text/javascript" src="./backtrack.js"></script>
+  <script type="text/javascript" src="./trailModel.js"></script>
+  <script type="text/javascript" src="./mazeRender.js"></script>
+
+</body>
+
+</html>
