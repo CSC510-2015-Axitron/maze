@@ -404,6 +404,7 @@ $(function() {
 	}
 	else
 	{
+		$.removeCookie('userAcc', {path: '/'});
 		$('#loadsavebuttons').hide();
 	}
 

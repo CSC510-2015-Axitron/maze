@@ -610,6 +610,7 @@ $(function() {
 		$('#user_id').text("USER: "+remoteDB.user);
 		$('#menu_login').text('Logout');
 	}
+	else $.removeCookie('userAcc', {path: '/'});
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
 	login = function() {
