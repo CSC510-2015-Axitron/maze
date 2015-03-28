@@ -19,11 +19,32 @@ mazeDirectory =
 	'medium': [],
 	'large': [],
 	'huge': []
-}
+};
+
+var categories =[
+    {
+        "id": 1,
+        "name": "Small Mazes (5-10)"
+    },
+    {
+        "id": 101,
+        "name": "Medium Mazes (10-20)"
+    },
+    {
+        "id": 201,
+        "name": "Large Mazes (20-30)"
+    },
+    {
+        "id": 301,
+        "name": "Huge Mazes (30+)"
+    }
+];
 
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
+
+
 
 // store data per game!
 var gameData = new function() {
@@ -610,6 +631,7 @@ $(function() {
 		$('#user_id').text("USER: "+remoteDB.user);
 		$('#menu_login').text('Logout');
 	}
+	else $.removeCookie('userAcc', {path: '/'});
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
 	login = function() {
@@ -777,10 +799,50 @@ $(function() {
 		console.log("goto button is pressed.");
 	});
 
-	$("#menu_level").click(function() {
-		console.log("level button is pressed.");
-	});
 
+	//Side menu related stuff starts here
+
+	$('#menu_level').sidr({
+      name: 'sidr', 
+      speed: 200, 
+      side: 'left',
+      source: null, 
+      renaming: true, 
+      body: 'body'
+
+    });
+
+	buildCats();
+	buildAlgoList();
+    $('.sub-menu-sidr').hide();
+
+    $("#sidr li:has(ul)").click(function(){
+        $("ul",this).toggle('fast');
+    });
+
+    $("ul").on('click', 'li', function(){
+      var curId = $(this).attr('id');
+      if(curId !== undefined){
+      	var sString = curId.slice(0,7)
+      	if(sString == "algoNum"){
+      		console.log("algo click");
+
+      	}else{
+	      	//console.log("curId is " + curId);
+	      	this.currentLevel = curId;
+
+	      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
+	      	//console.log("object is " + obj.mazeJSON);
+			this.currentMaze = JSON.parse(obj.mazeJSON);
+			//updateStatus();
+			//console.log("current maze is " + this.currentMaze);
+			AMaze.model.inject(this.currentMaze, setGameCanvas);
+		}
+		$.sidr('toggle');
+      }
+    });
+	//Side menu related stuff ends here
+	
 	$("#menu_login").click(function() {
 		if (!remoteDB.isLogon) loginDialog.dialog("open");
 		else {
@@ -794,12 +856,55 @@ $(function() {
 		}
 	});
 
+	 
+
 	$("#menu_load").click(function() {
 		console.log("load button is pressed.");
 	});
-
-
 });
+
+var buildAlgoList = function(){
+	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+	//console.log(algos);
+	for(var i = 0; i < algos.length; i++){
+	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
+	    sub = $('#sub5');
+	    sub.append(x);
+	}
+}
+
+var buildCats = function (){
+    var sub
+    var count = 0;
+    for(var i = 0; i < categories.length; i++){  
+        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
+        count++;
+        for(var j = 0; j < mazeInCat.mazes.length; j++){
+            var x = $('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>');
+            sub = $('#sub' + (count));
+            sub.append(x);
+            //console.log("count is  " + count);
+        }
+    };
+};
+
+//Uses apiClient to do the same thing as build cats.
+var buildCatsAPIC = function (){
+    var sub
+    var count = 0;
+    for(var i = 0; i < categories.length; i++){  
+        apiClient.getMazesInCategory(categories[i].id, function(resp){
+            //console.log("resp is " + resp);
+            count++;
+            for(var j = 0; j < resp.mazes.length; j++){
+                var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
+                sub = $('#sub' + (count));
+                sub.append(x);
+                //console.log("count is  " + count);
+            }
+        });
+    };
+};
 
 //Check to see if we are in node or the browser.
 if (typeof exports !== 'undefined'){

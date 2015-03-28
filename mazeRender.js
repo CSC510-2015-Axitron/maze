@@ -266,7 +266,7 @@ AMaze.render.MazeRenderer.prototype.refresh = function() {
 					//bgCtx.drawImage(this.cacheTrail,
 					//cacheCoords[0], cacheCoords[1], Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]),
 					//Math.max(this.displayMazeUL[0],0), Math.max(this.displayMazeUL[1],0), Math.min(this.actualWidth, this.cacheCanvas.width-cacheCoords[0]), Math.min(this.actualHeight, this.cacheCanvas.height-cacheCoords[1]));
-			}
+				}
 
 			}
 			else {
@@ -293,6 +293,8 @@ AMaze.render.MazeRenderer.prototype.refresh = function() {
 				a.lastMazeUL = tmpMazeUL;
 				a.lastCoords = cacheCoords;
 				clearInterval(AMaze.render.FPS_handler);
+
+				if (AMaze.model.trailOn) this.trailModel.makeTrailV2(this.cacheTrail, this.maze.currPos, this.style.cellSize, this.canvasEngine);
 
 				// Knight animation code can go here!
 				// Allow Async so no blocking!
