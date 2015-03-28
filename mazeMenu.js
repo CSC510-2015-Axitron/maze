@@ -988,6 +988,7 @@ $(function() {
     });
 
 	buildCats();
+	buildAlgoList();
     $('.sub-menu-sidr').hide();
 
     $("#sidr li:has(ul)").click(function(){
@@ -997,12 +998,21 @@ $(function() {
     $("ul").on('click', 'li', function(){
       var curId = $(this).attr('id');
       if(curId !== undefined){
-      	//console.log("curId is " + curId);
-      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
-      	//console.log("object is " + obj.mazeJSON);
-		this.currentMaze = JSON.parse(obj.mazeJSON);
-		//console.log("current maze is " + this.currentMaze);
-		AMaze.model.inject(this.currentMaze, setGameCanvas);
+      	var sString = curId.slice(0,7)
+      	if(sString == "algoNum"){
+      		console.log("algo click");
+
+      	}else{
+	      	//console.log("curId is " + curId);
+	      	this.currentLevel = curId;
+
+	      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
+	      	//console.log("object is " + obj.mazeJSON);
+			this.currentMaze = JSON.parse(obj.mazeJSON);
+			//updateStatus();
+			//console.log("current maze is " + this.currentMaze);
+			AMaze.model.inject(this.currentMaze, setGameCanvas);
+		}
 		$.sidr('toggle');
       }
     });
@@ -1027,8 +1037,33 @@ $(function() {
 	});
 });
 
-//Side menu related function
+var buildAlgoList = function(){
+	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+	//console.log(algos);
+	for(var i = 0; i < algos.length; i++){
+	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
+	    sub = $('#sub5');
+	    sub.append(x);
+	}
+}
+
 var buildCats = function (){
+    var sub
+    var count = 0;
+    for(var i = 0; i < categories.length; i++){  
+        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
+        count++;
+        for(var j = 0; j < mazeInCat.mazes.length; j++){
+            var x = $('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>');
+            sub = $('#sub' + (count));
+            sub.append(x);
+            //console.log("count is  " + count);
+        }
+    };
+};
+
+//Uses apiClient to do the same thing as build cats.
+var buildCatsAPIC = function (){
     var sub
     var count = 0;
     for(var i = 0; i < categories.length; i++){  
