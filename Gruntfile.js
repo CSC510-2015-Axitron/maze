@@ -9,16 +9,16 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-            'public/build/apiClient.js': 'src/apiClient.js',
-            'public/build/apiuser.js': 'src/apiuser.js',
-            'public/build/backtrack.js': 'src/backtrack.js',
-            'public/build/designer/designer.js':'src/designer/designer.js',
-            'public/build/maze.js': 'src/maze.js',
-            'public/build/mazeMenu.js': 'src/mazeMenu.js',
-            'public/build/mazeModel.js': 'src/mazeModel.js',
-            'public/build/mazeRender.js': 'src/mazeRender.js',
-            'public/build/remoteDB.js': 'src/remoteDB.js',
-            'public/build/trailModel.js': 'src/trailModel.js'
+            'public/build/apiClient.js': 'apiClient.js',
+            'public/build/apiuser.js': 'apiuser.js',
+            'public/build/backtrack.js': 'backtrack.js',
+            'public/build/designer/designer.js':'designer/designer.js',
+            'public/build/maze.js': 'maze.js',
+            'public/build/mazeMenu.js': 'mazeMenu.js',
+            'public/build/mazeModel.js': 'mazeModel.js',
+            'public/build/mazeRender.js': 'mazeRender.js',
+            'public/build/remoteDB.js': 'remoteDB.js',
+            'public/build/trailModel.js': 'trailModel.js'
         }
       }
     },
@@ -33,7 +33,13 @@ module.exports = function(grunt) {
             },
             {//lib
                 cwd:'.',
-                src:'lib/**/*',
+                src:[
+                    'canvasengine-1.3.2.all.min.js',
+                    'buzz.min.js',
+                    'jquery-2.1.3.min.js',
+                    'jquery.cookie.js',
+                    'jquery-ui.min.js'
+                ],
                 dest:'public/',
                 expand:true
             },
