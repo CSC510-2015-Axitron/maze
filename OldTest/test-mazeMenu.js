@@ -74,6 +74,12 @@ $ = function(obj) {
 				//assume obj is found
 				return this;
 			}
+			components.sidr = function(obj){
+				return this;
+			}
+			components.append = function(obj){
+				return this;
+			}
 			return components;
 		}
 		else
@@ -141,6 +147,7 @@ $.ajax = function(obj) {
 // jquery cookie
 $.cookie = function(name, cookie, params) {this.cookieStatus = "created";this.name = name; this.cookie = cookie, this.params = params;}
 $.removeCookie = function(name, params){this.cookieStatus = 'removed';}
+//buildCats=function(){}
 
 //Amaze model mock object
 AMaze = {};
