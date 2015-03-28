@@ -999,14 +999,15 @@ $(function() {
       if(curId !== undefined){
       	//console.log("curId is " + curId);
       	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
-      	console.log("object is " + obj.mazeJSON);
+      	//console.log("object is " + obj.mazeJSON);
 		this.currentMaze = JSON.parse(obj.mazeJSON);
-		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+		//console.log("current maze is " + this.currentMaze);
+		AMaze.model.inject(this.currentMaze, setGameCanvas);
+		$.sidr('toggle');
       }
     });
-
-
-    //Side menu related stuff ends here
+	//Side menu related stuff ends here
+	
 	$("#menu_login").click(function() {
 		if (!remoteDB.isLogon) loginDialog.dialog("open");
 		else {
