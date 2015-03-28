@@ -38,9 +38,10 @@ module.exports = function(grunt) {
                     'buzz.min.js',
                     'jquery-2.1.3.min.js',
                     'jquery.cookie.js',
-                    'jquery-ui.min.js'
+                    'jquery-ui.min.js',
+                    'jquery.sidr.min.js'
                 ],
-                dest:'public/',
+                dest:'public/lib/',
                 expand:true
             },
             {//levels
