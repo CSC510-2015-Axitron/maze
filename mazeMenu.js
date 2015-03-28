@@ -621,6 +621,50 @@ function setGameCanvas(loaded) {
 		canvas.ready().Scene.call("MyScene");
 };
 
+var buildAlgoList = function(){
+	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+	//console.log(algos);
+	for(var i = 0; i < algos.length; i++){
+	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
+	    sub = $('#sub5');
+	    sub.append(x);
+	}
+}
+
+var buildCats = function (){
+    var sub
+    var count = 0;
+    for(var i = 0; i < categories.length; i++){  
+        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
+        count++;
+        for(var j = 0; j < mazeInCat.mazes.length; j++){
+            var x = $('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>');
+            sub = $('#sub' + (count));
+            sub.append(x);
+            //console.log("count is  " + count);
+        }
+    };
+};
+
+//Uses apiClient to do the same thing as build cats.
+var buildCatsAPIC = function (){
+    var sub
+    var count = 0;
+    for(var i = 0; i < categories.length; i++){  
+        apiClient.getMazesInCategory(categories[i].id, function(resp){
+            //console.log("resp is " + resp);
+            count++;
+            for(var j = 0; j < resp.mazes.length; j++){
+                var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
+                sub = $('#sub' + (count));
+                sub.append(x);
+                //console.log("count is  " + count);
+            }
+        });
+    };
+};
+
+
 $(function() {
 	$.cookie.json = true;
 	$('#user_info').hide();
@@ -863,49 +907,6 @@ $(function() {
 	});
 });
 
-var buildAlgoList = function(){
-	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
-	//console.log(algos);
-	for(var i = 0; i < algos.length; i++){
-	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
-	    sub = $('#sub5');
-	    sub.append(x);
-	}
-}
-
-var buildCats = function (){
-    var sub
-    var count = 0;
-    for(var i = 0; i < categories.length; i++){  
-        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
-        count++;
-        for(var j = 0; j < mazeInCat.mazes.length; j++){
-            var x = $('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>');
-            sub = $('#sub' + (count));
-            sub.append(x);
-            //console.log("count is  " + count);
-        }
-    };
-};
-
-//Uses apiClient to do the same thing as build cats.
-var buildCatsAPIC = function (){
-    var sub
-    var count = 0;
-    for(var i = 0; i < categories.length; i++){  
-        apiClient.getMazesInCategory(categories[i].id, function(resp){
-            //console.log("resp is " + resp);
-            count++;
-            for(var j = 0; j < resp.mazes.length; j++){
-                var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
-                sub = $('#sub' + (count));
-                sub.append(x);
-                //console.log("count is  " + count);
-            }
-        });
-    };
-};
-
 //Check to see if we are in node or the browser.
 if (typeof exports !== 'undefined'){
 	module.exports.getNextMaze = getNextMaze;
@@ -915,4 +916,6 @@ if (typeof exports !== 'undefined'){
 	module.exports.setGameCanvas = setGameCanvas;
 	module.exports.gameData = gameData;
 	module.exports.soundWizzard = soundWizzard;
+	module.exports.buildCatsAPIC = buildCatsAPIC;
+	module.exports.buildCats = buildCats;
 }
