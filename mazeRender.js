@@ -357,7 +357,7 @@ AMaze.render.MazeRenderer.prototype.createTrailModel = function() {
 		return {x: x1, y: y1};
 	}
 
-	this.trailModel = new trailModel.create(el, this.AMaze);
+	this.trailModel = new trailModel.create(el, {width: 200, height: 200});
 	this.cacheTrail = document.createElement('canvas');
 	this.cacheTrail.width = this.maze.width*this.style.cellSize[0]+2;
 	this.cacheTrail.height = this.maze.height*this.style.cellSize[1]+2;
