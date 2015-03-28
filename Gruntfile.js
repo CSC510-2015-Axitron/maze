@@ -18,7 +18,8 @@ module.exports = function(grunt) {
             'public/build/mazeModel.js': 'mazeModel.js',
             'public/build/mazeRender.js': 'mazeRender.js',
             'public/build/remoteDB.js': 'remoteDB.js',
-            'public/build/trailModel.js': 'trailModel.js'
+            'public/build/trailModel.js': 'trailModel.js',
+            'public/server.js': 'server.js'
         }
       }
     },
