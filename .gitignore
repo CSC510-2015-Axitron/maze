@@ -1,6 +1,6 @@
 config.codekit
 node_modules/
 coverage/
-public/levels/.DS_Store
+public/*
 report.html
 server.db

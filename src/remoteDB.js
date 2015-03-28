@@ -8,7 +8,7 @@ var remoteDB = {
 	userID:0,
 	sessionTimeout: 20, //20 mins, should be close enough < 30
 	isLogon: false,
-	url: "http://axemaze-db.herokuapp.com",
+	url: "https://axemaze-db.herokuapp.com",
 
 	categories: [], 		// url/categories
 	mazeCategory: [,,,],    // url/mazes/category/:id
@@ -22,7 +22,8 @@ var remoteDB = {
 	sessionHandler: 0,
 
 	HTTPGet: function(path) {
-		return JSON.parse($.ajax({
+            var toReturn = 
+		$.ajax({
 			type: "GET",
 			url: this.url+path,
 			async: false,
@@ -30,7 +31,8 @@ var remoteDB = {
 				"authorization":remoteDB.token,
 				"content-type":"application/json"
 			}
-		}).responseText);
+		});
+            return JSON.parse(toReturn.responseText);
 
 	},
 	HTTPGetAsync: function(path, func) {
