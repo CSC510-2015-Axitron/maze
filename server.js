@@ -249,6 +249,96 @@ var N_CONST = 1,
     S_CONST = 4,
     W_CONST = 8;
 
+function distanceBetweenMazePoints(maze, start, end)
+{
+	var nodes_closed = [];
+	var nodes_open_pqindex = [];
+	var priority_queue = [];
+	var nodes_backtrack = [];
+	var nodes_fscore = [];
+	var nodes_gscore = [];
+	for (var y = 0; y < maze.height; y++) {
+		for (var x = 0; x < maze.width; x++) {
+			nodes_closed[x * maze.height + y] = false;
+			nodes_open_pqindex[x * maze.height + y] = -1;
+			nodes_backtrack[x * maze.height + y] = [-1, -1];
+			nodes_fscore[x * maze.height + y] = Infinity;
+			nodes_gscore[x * maze.height + y] = Infinity;
+		}
+	}
+	priority_queue[0] = start;
+	nodes_gscore[start[0] * maze.height + start[1]] = 0;
+	nodes_fscore[start[0] * maze.height + start[1]] = nodes_gscore[start[0] * maze.height + start[1]] + Math.abs(start[0] - end[0]) + Math.abs(start[1] - end[1]);
+	nodes_open_pqindex[start[0] * maze.height + start[1]] = 0;
+	
+	while (priority_queue.length != 0) {
+		current = priority_queue[priority_queue.length - 1];
+		if (current[0] == end[0] && current[1] == end[1])
+			return nodes_gscore[end[0] * maze.height + end[1]];
+		
+		nodes_open_pqindex[current[0] * maze.height + current[1]] = -1;
+		priority_queue = priority_queue.splice(0, priority_queue.length - 1);
+// alert("Neighbor: " + current + " (Closed: " + nodes_closed[current[0] * maze.height + current[1]] + ")")
+		nodes_closed[current[0] * maze.height + current[1]] = true;
+		var neighbor_directions = [ [-1,0,W_CONST],[0,-1,N_CONST],[1,0,E_CONST],[0,1,S_CONST] ];
+		for (var i = 0; i < neighbor_directions.length; i++) {
+			var neighbor_direction = neighbor_directions[i];
+			if (current[0] == 0 && neighbor_direction[0] == -1) continue;
+			if (current[1] == 0 && neighbor_direction[1] == -1) continue;
+			if (current[0] == maze.width -1 && neighbor_direction[0] == 1) continue;
+			if (current[1] == maze.height-1 && neighbor_direction[1] == 1) continue;
+			
+		// alert(maze.board[current[0]][current[1]] + ";" + neighbor_directions[i][2])
+			if (!(maze.board[current[0]][current[1]] & neighbor_directions[i][2])) continue;
+
+			var neighbor = [current[0] + neighbor_direction[0], current[1] + neighbor_direction[1]];
+		// alert(neighbor)
+			if (typeof(nodes_closed) !== 'undefined' && typeof(nodes_closed[neighbor[0] * maze.height + neighbor[1]]) !== 'undefined'
+				&& nodes_closed[neighbor[0] * maze.height + neighbor[1]]) continue;
+
+			tentative_gscore = nodes_gscore[current[0] * maze.height + current[1]] + 1;
+			
+			if (nodes_open_pqindex[neighbor[0] * maze.height + neighbor[1]]==-1 || tentative_gscore < nodes_gscore[neighbor[0] * maze.height + neighbor[1]]) {
+				nodes_backtrack[neighbor[0] * maze.height + neighbor[1]] = current;
+				nodes_gscore[neighbor[0] * maze.height + neighbor[1]] = tentative_gscore;
+				nodes_fscore[neighbor[0] * maze.height + neighbor[1]] = nodes_gscore[neighbor[0] * maze.height + neighbor[1]] + Math.abs(neighbor[0] - end[0]) + Math.abs(neighbor[1] - end[1]);
+				
+				var pq_index;
+				if (nodes_open_pqindex[neighbor[0] * maze.height + neighbor[1]] == -1) {
+					pq_index = priority_queue.length;
+					nodes_open_pqindex[neighbor[0] * maze.height + neighbor[1]] = pq_index;
+					priority_queue[priority_queue.length] = neighbor;
+				} else {
+					pq_index = nodes_open_pqindex[neighbor[0] * maze.height + neighbor[1]];
+				}
+				
+				while (pq_index != 0 && nodes_fscore[priority_queue[pq_index][0] * maze.height + priority_queue[pq_index][1]] >
+						nodes_fscore[priority_queue[pq_index-1][0] * maze.height + priority_queue[pq_index-1][1]]) {
+					var one_that_was_ahead = priority_queue[pq_index];
+					var one_that_was_behind = priority_queue[pq_index-1];
+					priority_queue[pq_index-1] = one_that_was_ahead;
+					priority_queue[pq_index] = one_that_was_behind;
+					nodes_open_pqindex[one_that_was_ahead[0] * maze.height + one_that_was_ahead[1]]--;
+					nodes_open_pqindex[one_that_was_behind[0] * maze.height + one_that_was_behind[1]]++;
+					pq_index--;
+				}
+				while (pq_index != priority_queue.length-1 && nodes_fscore[priority_queue[pq_index][0] * maze.height + priority_queue[pq_index][1]]
+						< nodes_fscore[priority_queue[pq_index+1][0] * maze.height + priority_queue[pq_index+1][1]]) {
+					var one_that_was_ahead = priority_queue[pq_index];
+					var one_that_was_behind = priority_queue[pq_index-1];
+					priority_queue[pq_index-1] = one_that_was_ahead;
+					priority_queue[pq_index] = one_that_was_behind;
+					nodes_open_pqindex[one_that_was_ahead[0] * maze.height + one_that_was_ahead[1]]--;
+					nodes_open_pqindex[one_that_was_behind[0] * maze.height + one_that_was_behind[1]]++;
+					pq_index++;
+				}
+				
+			}
+		}
+	}
+	return Infinity;
+}
+
 //methods to generate a maze algorithmically
 //all take width, height, seed
 //all return {seed:(seed), maze:(complete maze)}
