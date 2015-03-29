@@ -398,6 +398,92 @@ function genRecursiveBacktracker (width, height, seed)
             maze.board[validSpots[idx][0]][validSpots[idx][1]] |= antidirs[idx];
         }
     }
+	
+	var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+	while (true) {
+		var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
+		var neighbor_directions_in_order = [ [0,0], [0,0], [0,0], [0,0] ];
+		var index1 = Math.floor(myRandom() % 4);
+		neighbor_directions_in_order[0] = neighbor_directions[index1];
+		neighbor_directions[index1] = neighbor_directions[3];
+		var index2 = Math.floor(myRandom() % 3);
+		neighbor_directions_in_order[1] = neighbor_directions[index2];
+		neighbor_directions[index2] = neighbor_directions[2];
+		var index3 = Math.floor(myRandom() % 2);
+		neighbor_directions_in_order[2] = neighbor_directions[index3];
+		neighbor_directions[index3] = neighbor_directions[1];
+		neighbor_directions_in_order[3] = neighbor_directions[0];
+		
+		var advanced = false;
+		if (Math.floor(myRandom() % 2) == 0) {
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		} else {
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		}
+	}
+	
     ret.maze = maze;
     return ret;
 }
