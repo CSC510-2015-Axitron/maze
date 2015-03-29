@@ -191,7 +191,7 @@ var remoteDB = {
 
 		var order = this.findCurrentMazeOrder();
 		currentMaze = (order == -1? currentMaze: order); //if maze order is -1 use existing counter
-		++currentMaze;console.log(order, currentMaze, currentLevel);
+		++currentMaze;
 
 		if (currentMaze >= this.mazeTotal)
 		{
@@ -202,16 +202,16 @@ var remoteDB = {
 		{
 
 			var notFound = true;
-			var count = 0;
 
 			// Do not check integrity of remote DB here!
 			while (notFound) {
+				var count = 0;
 				for (var i = 0; i < currentLevel; ++i) {
 					count += this.mazeCategory[i].mazes.length;
 				}
 
 				if (currentMaze < count + this.mazeCategory[currentLevel].mazes.length) {
-					this.currMazeID = this.mazeCategory[currentLevel].mazes[currentMaze - count].mazeno;;
+					this.currMazeID = this.mazeCategory[currentLevel].mazes[currentMaze - count].mazeno;
 					notFound = false;
 				}
 				else ++currentLevel;
