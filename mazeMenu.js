@@ -10,7 +10,7 @@ currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
 
 //
-// Enter maze json files here
+// Enter maze json files here (for local JSON files ONLY!)
 // Please leave out '.json' file extension
 //
 mazeDirectory =
@@ -43,7 +43,7 @@ var categories =[
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
-
+var musicOn = true; //turn the background music on/off
 
 
 // store data per game!
@@ -65,9 +65,9 @@ var gameData = new function() {
 	}
 }
 
-
+//For local JSON files only
 //Enter current level and maze number
-//Return the next maze json file
+//Return the next maze json file 
 function getNextMaze() {
 
 	var mazeKeyArray = Object.keys(mazeDirectory);
@@ -113,15 +113,12 @@ function updateStatus(maze) {
 
 			$("#dsp_score").text(maze.gameData.getScore());
 
-		//if (confirm("Congratulations!\nYou have completed this level!\nProceed to next maze?"))
-		//{
 			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
 			else AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
-
 			soundWizzard.playMusic();
 			inputLock = mouseAction.inputLock = false; //unlock input device
-		//}
-		}, soundWizzard.winnerPause);
+
+		}, (soundWizzard.winnerPause == 0 ? 500: soundWizzard.winnerPause)); // must larger than stepTime
 	}
 
 	soundWizzard.playStep();
@@ -210,6 +207,7 @@ var soundWizzard = {
 
 	isActive: false,
 	currSong: 0,
+	winnerPause: 0,
 
 	musicFiles: [
 		"sound/Anguish.mp3",
@@ -261,6 +259,14 @@ var soundWizzard = {
 
 	},
 
+	musicOn: function() {
+		if (!this.isActive) this.initiate();
+	},
+
+	msuicOff: function() {
+		this.isActive = false;
+	},
+
 	playMusic: function() {
 		if (!this.isActive) return;
 		this.playList[soundWizzard.currSong].play();
@@ -278,25 +284,25 @@ var soundWizzard = {
 	},
 
 	playIntro: function() {
-		if (this.intro !== undefined) this.intro.play();
+		if (this.intro !== undefined && this.isActive) this.intro.play();
 	},
 
 	playWinner: function() {
-		if (this.winner !== undefined) this.winner.play();
+		if (this.winner !== undefined && this.isActive) this.winner.play();
 	},
 
 	playfinale: function() {
-		if (this.finale !== undefined) this.finale.play();
+		if (this.finale !== undefined && this.isActive) this.finale.play();
 	},
 
 	playStep: function() {
-		if (this.step !== undefined) {
+		if (this.step !== undefined && this.isActive) {
 			this.step.play();
 		}
 	},
 
 	playObstacle: function() {
-		if (this.block !== undefined) {
+		if (this.block !== undefined && this.isActive) {
 			this.block.play();
 		}
 	}
@@ -876,7 +882,7 @@ $(function() {
 		login();
 	});
 
-	soundWizzard.initiate();
+	if (musicOn) soundWizzard.initiate();
 	soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
