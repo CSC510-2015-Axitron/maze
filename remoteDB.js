@@ -47,6 +47,20 @@ var remoteDB = {
 			error: function(data) {func(JSON.parse(data.responseText));}
 		});
 	},
+	//Special use for case where data should not be stringified.
+	HTTPPostGen: function(path, datas) {
+		return JSON.parse($.ajax({
+			type: "POST",
+			data: datas,
+			url: this.url+path,
+			async: false,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			}
+		}).responseText);
+
+	},
 	HTTPPost: function(path, datas) {
 		return JSON.parse($.ajax({
 			type: "POST",

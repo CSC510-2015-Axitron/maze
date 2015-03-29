@@ -869,17 +869,16 @@ $(function() {
       if(curId !== undefined){
       	var sString = curId.slice(0,7)
       	if(sString == "algoNum"){
-      		console.log("algo click");
-
+      		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+      		var req = '{"algorithm" : "' + algos[curId.slice(7)] + '"}';
+      		var gen = remoteDB.HTTPPostGen('/maze/gen', req);
+      		this.currentLevel = curId.slice[7];
+      		this.currentMaze = gen.maze;
+      		AMaze.model.inject(this.currentMaze, setGameCanvas);
       	}else{
-	      	//console.log("curId is " + curId);
 	      	this.currentLevel = curId;
-
 	      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
-	      	//console.log("object is " + obj.mazeJSON);
 			this.currentMaze = JSON.parse(obj.mazeJSON);
-			//updateStatus();
-			//console.log("current maze is " + this.currentMaze);
 			AMaze.model.inject(this.currentMaze, setGameCanvas);
 		}
 		$.sidr('toggle');
