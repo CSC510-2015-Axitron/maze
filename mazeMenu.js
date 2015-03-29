@@ -135,7 +135,7 @@ function updateStatus(maze) {
 function resetStatus() {
 	$("#dsp_steps").text(0);
 	$("#dsp_time").text("00:00");
-	$("#dsp_level").text(currentMaze);
+	$("#dsp_level").text(currentMazeFile);
 }
 
 // user data per level
@@ -773,13 +773,10 @@ $(function() {
 			//if the maze number doesn't exist just close
 			//$('#load-form').dialog('close');
 		//}
-		var obj = remoteDB.HTTPGet("/maze/" + mazeNum.val());
-		if(obj.response !== undefined){
+		if(!remoteDB.getMazeByMazeno(mazeNum.val())){
 			console.log('failed to load');
-			$('#load-form').dialog('close');
 		}
-		this.currentMaze = JSON.parse(obj.mazeJSON);
-		AMaze.model.inject(this.currentMaze, setGameCanvas);
+		$("#dsp_level").text(currentMazeFile);
 		$('#load-form').dialog('close');
 	},
 	register = function() {
@@ -955,10 +952,12 @@ $(function() {
       		this.currentMaze = gen.maze;
       		AMaze.model.inject(this.currentMaze, setGameCanvas);
       	}else{
-	      	this.currentLevel = curId;
-	      	var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
-			this.currentMaze = JSON.parse(obj.mazeJSON);
-			AMaze.model.inject(this.currentMaze, setGameCanvas);
+	      	//this.currentLevel = curId;
+	      	//var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
+			//this.currentMaze = JSON.parse(obj.mazeJSON);
+			//AMaze.model.inject(this.currentMaze, setGameCanvas);
+			remoteDB.getMazeByMazeno(curId);
+			$("#dsp_level").text(currentMazeFile);
 		}
 		$.sidr('toggle');
       }

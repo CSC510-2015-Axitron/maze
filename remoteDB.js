@@ -168,11 +168,15 @@ var remoteDB = {
 
 	// get maze by maze no and start the level, will not check maze availability, assume chosen from predefined mazeno array
 	getMazeByMazeno: function(mazeno) {
-		maze.userData.TimerOff(); //stop the timer
-		var obj = this.HTTPGet("/maze/"+(this.currMazeID=mazeno).toString());
-		this.currMazeObj = JSON.parse(obj.mazeJSON);
-		currentMazeFile = obj.displayName; //global parameters!
-		AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
+		var obj = this.HTTPGet("/maze/"+(mazeno).toString());
+		if (obj.response != "maze not found") {
+			this.currMazeID = mazeno;
+			this.currMazeObj = JSON.parse(obj.mazeJSON);
+			currentMazeFile = obj.displayName; //global parameters!
+			AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
+			return true;
+		}
+		else return false;
 	},
 
 	getCategoryByUserID: function(id) {
@@ -186,7 +190,7 @@ var remoteDB = {
 	getNextMaze: function() {
 
 		var order = this.findCurrentMazeOrder();
-		//currentMaze = (order == -1? currentMaze: order); //if maze order is -1 use existing counter
+		currentMaze = (order == -1? currentMaze: order); //if maze order is -1 use existing counter
 		++currentMaze;console.log(order, currentMaze, currentLevel);
 
 		if (currentMaze >= this.mazeTotal)
