@@ -710,6 +710,7 @@ $(function() {
 	$.cookie.json = true;
 	$('#user_info').hide();
 	$('#menu_designer').hide();
+
 	if (remoteDB.verifyCookie($.cookie('userAcc'))) {
 		$('#menu_designer').show();
 		$('#user_info').show();
@@ -719,6 +720,7 @@ $(function() {
 	else $.removeCookie('userAcc', {path: '/'});
 	var loginEmailField = $('#login_email'),
 	loginPasswordField = $('#login_password'),
+	mazeNum = $('#maze_num'),
 	login = function() {
 		var email = loginEmailField.val() || "",
 		password = loginPasswordField.val() || "";
@@ -757,6 +759,23 @@ $(function() {
 			if(password.length < 1)
 				loginPasswordField.addClass( "ui-state-error" );
 	},
+	load = function(){
+		//console.log('we are here');
+		//var numMazes = remoteDB.HTTPGet('/mazes');
+		//console.log(numMazes);
+		//if(mazeNum.val() > numMazes - 1){
+			//if the maze number doesn't exist just close
+			//$('#load-form').dialog('close');
+		//}
+		var obj = remoteDB.HTTPGet("/maze/" + mazeNum.val());
+		if(obj.response !== undefined){
+			console.log('failed to load');
+			$('#load-form').dialog('close');
+		}
+		this.currentMaze = JSON.parse(obj.mazeJSON);
+		AMaze.model.inject(this.currentMaze, setGameCanvas);
+		$('#load-form').dialog('close');
+	},
 	register = function() {
 		var email = loginEmailField.val(),
 		password = loginPasswordField.val();
@@ -780,6 +799,15 @@ $(function() {
 			if(password.length < 1)
 				loginPasswordField.addClass( "ui-state-error" );
 	},
+	loadDialog = $( "#load-form" ).dialog({
+		autoOpen: false,
+		height: 220,
+		width: 275,
+		modal: true,
+		buttons: {
+			"Load": load
+		}
+	}),
 	loginDialog = $( "#login-form" ).dialog({
 		autoOpen: false,
 		height: 300,
@@ -947,7 +975,9 @@ $(function() {
 	 
 
 	$("#menu_load").click(function() {
-		console.log("load button is pressed.");
+		loadDialog.dialog("open");
+
+		//console.log("load button is pressed.");
 	});
 });
 
