@@ -43,7 +43,7 @@ var categories =[
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
-var musicOn = true; //turn the background music on/off
+var musicOn = false; //turn the background music on/off
 
 
 // store data per game!

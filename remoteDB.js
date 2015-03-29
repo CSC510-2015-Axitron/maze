@@ -13,8 +13,9 @@ var remoteDB = {
 	categories: [], 		// url/categories
 	mazeCategory: [,,,],    // url/mazes/category/:id
 	mazeTotal: 0,			// url/mazes
+	defMazeTotal: 0,		// number of official mazes
 
-	currMazeID: 0,			// current maze ID
+	currMazeID: -1,			// current maze ID
 	currMazeObj: {},		// url/maze/:id
 
 	userMazeCategory: [],	// user-created mazes
@@ -152,11 +153,15 @@ var remoteDB = {
 
 		//load first level
 		this.mazeCategory[0] = this.HTTPGet("/mazes/category/1");
+		this.defMazeTotal = this.mazeCategory[0].mazes.length;
 
-		//use async AJAX to load the rest of categories
+		//use AJAX to load the rest of categories
 		for (var i = 1; i < this.categories.length; ++i)
 		{
-			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){remoteDB.mazeCategory[parseInt(e.category.toString().substring(0,1))] = e;});
+			this.HTTPGetAsync("/mazes/category/"+this.categories[i].id.toString(), function(e){
+				remoteDB.mazeCategory[parseInt(e.category.toString().substring(0,1))] = e;
+				remoteDB.defMazeTotal += e.mazes.length;
+			});
 		}
 
 	},
@@ -166,7 +171,8 @@ var remoteDB = {
 		maze.userData.TimerOff(); //stop the timer
 		var obj = this.HTTPGet("/maze/"+(this.currMazeID=mazeno).toString());
 		this.currMazeObj = JSON.parse(obj.mazeJSON);
-		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+		currentMazeFile = obj.displayName; //global parameters!
+		AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
 	},
 
 	getCategoryByUserID: function(id) {
@@ -179,7 +185,9 @@ var remoteDB = {
 
 	getNextMaze: function() {
 
-		++currentMaze;
+		var order = this.findCurrentMazeOrder();
+		//currentMaze = (order == -1? currentMaze: order); //if maze order is -1 use existing counter
+		++currentMaze;console.log(order, currentMaze, currentLevel);
 
 		if (currentMaze >= this.mazeTotal)
 		{
@@ -208,13 +216,27 @@ var remoteDB = {
 
 		var obj = this.HTTPGet("/maze/"+this.currMazeID.toString());
 		this.currMazeObj = JSON.parse(obj.mazeJSON);
-		currentMazeFile = obj.displayName;
+		currentMazeFile = obj.displayName; //global parameters!
 
 		return this.currMazeObj;
 	},
 
-	getCurrentMaze: function() {
-		return this.currMazeObj;
+	findCurrentMazeOrder: function() {
+		if (this.currMazeID < 0) return -1; //skip uninitialized maze
+		var notFound = true;
+		var obj;
+		var idx = -1;
+		for (var i=0; i < this.mazeCategory.length; ++i) {
+			for (var j=0; j < (obj = this.mazeCategory[i].mazes).length; ++j) {
+				++idx;
+				if (this.currMazeID == obj[j].mazeno) {
+					this.currMazeID = obj[j].mazeno;
+					currentLevel = i;
+					return idx;
+				}
+			}
+		}
+		return -1; //not found
 	},
 
 	getUserId: function(){
