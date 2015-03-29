@@ -626,10 +626,39 @@ var buildUserList = function(){
 	var usrMazes = remoteDB.HTTPGet('/mazes/user/' + remoteDB.getUserId());
 	//console.log(usrMazes.mazes);
 	for(var j = 0; j < usrMazes.mazes.length; j++){
-        var x = $('<li id=' + usrMazes.mazes[j].mazeno + '><a href="#">' + usrMazes.mazes[j].displayName + '</a></li>');
-        sub = $('#sub6');
-        sub.append(x);
+        if($('#' + usrMazes.mazes[j].mazeno).length){
+        	//donothing
+        }else{
+        	var x = $('<li id=' + usrMazes.mazes[j].mazeno + '><a href="#">' + usrMazes.mazes[j].displayName + '</a></li>');
+        	sub = $('#sub6');
+        	sub.append(x);
+        }
     }
+}
+
+var updateCats = function(){
+	if(remoteDB.getIsLogon()){
+		buildUserList();
+		//update checkmarks
+		var playedList = remoteDB.HTTPGet('/played/' + remoteDB.getUserId());
+		var playedNums = [];
+		for(var k = 0; k < playedList.played.length; k++){
+			playedNums[k] = playedList.played[k].mazeno;
+		}
+		var sub
+	    var count = 0;
+	    for(var i = 0; i < categories.length; i++){  
+	        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
+	        count++;
+	        for(var j = 0; j < mazeInCat.mazes.length; j++){
+	            var x;
+	            if(playedNums.indexOf(mazeInCat.mazes[j].mazeno) != -1){
+	            	var tar = $('#' + mazeInCat.mazes[j].mazeno);
+	            	tar.html('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '  &#10004;</a></li>');
+	            }
+	        }
+	    };
+	}
 }
 
 
@@ -721,7 +750,6 @@ $(function() {
 				$('#user_id').text("USER: "+email);
 				$('#menu_login').text('Logout');
 				$.cookie('userAcc', {email: email, token: data.token, userID: data.userid}, {expires: 1, path: '/'});
-				buildUserList();
 			});
 		else
 			if(email.length < 1)
@@ -868,6 +896,10 @@ $(function() {
       body: 'body'
 
     });
+
+    $('#menu_level').click(function(){
+    	updateCats();
+    })
 
 	buildCats();
 	buildAlgoList();

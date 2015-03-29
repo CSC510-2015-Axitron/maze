@@ -221,6 +221,10 @@ var remoteDB = {
 		return this.userID;
 	},
 
+	getIsLogon: function(){
+		return this.isLogon;
+	},
+
 	updateStatus: function(time, steps) {
 		if (this.isLogon)
 		{
