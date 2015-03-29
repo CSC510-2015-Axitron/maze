@@ -457,6 +457,14 @@ remoteDB = {
 		return this.currMazeObj;
 	},
 
+	getUserId: function(){
+		return this.userID;
+	},
+
+	getIsLogon: function(){
+		return this.isLogon;
+	},
+
 	updateStatus: function(time, steps) {
 		if (this.isLogon)
 		{
