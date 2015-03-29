@@ -491,18 +491,18 @@ function genRecursiveBacktracker (width, height, seed)
 }
 
 var algorithms = {
-    "recursivebacktracking":genRecursiveBacktracker
+    "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker}
 };
 
 //algorithm is guaranteed to be one of the registered algorithms
 function genMaze(algorithm, seed) {
-    var mazeReturn = {"algorithm":algorithm},
+    var mazeReturn = {"algorithm":algorithm,"displayName":algorithms[algorithm].displayName},
     seededRandom = seedRandom(seed),
     transform = function(x){return 1-(1/(1+x))},
     sdTransform = function(sd){ return transform( ( (seededRandom()+0.5) * sd) %5000000/5000000); },
     width = Math.floor(sdTransform(seed)*60+10),
     height = Math.floor(sdTransform(seed)*60+10),
-    ret = algorithms[algorithm](width, height, seed);
+    ret = algorithms[algorithm].gen(width, height, seed);
     mazeReturn.seed = seed;
     mazeReturn.maze = ret.maze;
     return mazeReturn;
@@ -757,8 +757,8 @@ restapi.get('/maze/:mazeno', function(req, res){
 
 restapi.get('/maze/gen/algorithms', function(req, res){
     var keys = [];
-    for(key in algorithms) keys.push(key);
-    keys.sort();
+    for(key in algorithms) keys.push({ "gen":key, "displayName":algorithms[key].displayName });
+    keys.sort(function(a,b){ return a.displayName.localeCompare(b.displayName); });
     res.status(200).json(keys);
 });
 
