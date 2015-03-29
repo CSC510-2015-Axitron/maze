@@ -672,7 +672,7 @@ var buildAlgoList = function(){
 	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
 	//console.log(algos);
 	for(var i = 0; i < algos.length; i++){
-	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
+	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i].displayName+ '</a></li>');
 	    sub = $('#sub5');
 	    sub.append(x);
 	}
@@ -946,7 +946,7 @@ $(function() {
       	var sString = curId.slice(0,7)
       	if(sString == "algoNum"){
       		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
-      		var req = '{"algorithm" : "' + algos[curId.slice(7)] + '"}';
+      		var req = '{"algorithm" : "' + algos[curId.slice(7)].gen + '"}';
       		var gen = remoteDB.HTTPPostGen('/maze/gen', req);
       		this.currentLevel = curId.slice[7];
       		this.currentMaze = gen.maze;
