@@ -621,6 +621,18 @@ function setGameCanvas(loaded) {
 		canvas.ready().Scene.call("MyScene");
 };
 
+var buildUserList = function(){
+	//console.log("remote id is " + remoteDB.getUserId());
+	var usrMazes = remoteDB.HTTPGet('/mazes/user/' + remoteDB.getUserId());
+	//console.log(usrMazes.mazes);
+	for(var j = 0; j < usrMazes.mazes.length; j++){
+        var x = $('<li id=' + usrMazes.mazes[j].mazeno + '><a href="#">' + usrMazes.mazes[j].displayName + '</a></li>');
+        sub = $('#sub6');
+        sub.append(x);
+    }
+}
+
+
 var buildAlgoList = function(){
 	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
 	//console.log(algos);
@@ -629,7 +641,7 @@ var buildAlgoList = function(){
 	    sub = $('#sub5');
 	    sub.append(x);
 	}
-}
+};
 
 var buildCats = function (){
     var sub
@@ -709,6 +721,7 @@ $(function() {
 				$('#user_id').text("USER: "+email);
 				$('#menu_login').text('Logout');
 				$.cookie('userAcc', {email: email, token: data.token, userID: data.userid}, {expires: 1, path: '/'});
+				buildUserList();
 			});
 		else
 			if(email.length < 1)

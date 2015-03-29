@@ -217,6 +217,10 @@ var remoteDB = {
 		return this.currMazeObj;
 	},
 
+	getUserId: function(){
+		return this.userID;
+	},
+
 	updateStatus: function(time, steps) {
 		if (this.isLogon)
 		{
