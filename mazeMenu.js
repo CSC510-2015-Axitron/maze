@@ -912,7 +912,7 @@ $(function() {
 	$("#menu_new").click(function() {
 		if (confirm("Are you sure you want to restart this level?")) {
 			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-			else AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+			else AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
 		}
 	});
 
@@ -983,7 +983,7 @@ $(function() {
 		}
 	});
 
-	$("#menu_sound").click(function(){console.log("click");
+	$("#menu_sound").click(function(){
 		if (soundOn) {
 			soundOn = false;
 			soundWizzard.musicOff();
@@ -1015,5 +1015,4 @@ if (typeof exports !== 'undefined'){
 	module.exports.soundWizzard = soundWizzard;
 	module.exports.buildCatsAPIC = buildCatsAPIC;
 	module.exports.buildCats = buildCats;
-	module.exports.soundOn = soundOn;
 }
