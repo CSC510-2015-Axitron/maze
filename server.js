@@ -425,7 +425,7 @@ function genRecursiveBacktracker (width, height, seed)
 						continue;
 				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
 				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
-				if (new_dist > dist) {
+				if (new_dist > dist && new_dist != Infinity) {
 					maze.start = neighbor;
 					dist = new_dist;
 					advanced = true;
@@ -441,7 +441,7 @@ function genRecursiveBacktracker (width, height, seed)
 						continue;
 				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
 				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
-				if (new_dist > dist) {
+				if (new_dist > dist && new_dist != Infinity) {
 					maze.end = neighbor;
 					dist = new_dist;
 					advanced = true;
@@ -458,7 +458,7 @@ function genRecursiveBacktracker (width, height, seed)
 						continue;
 				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
 				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
-				if (new_dist > dist) {
+				if (new_dist > dist && new_dist != Infinity) {
 					maze.end = neighbor;
 					dist = new_dist;
 					advanced = true;
@@ -474,7 +474,7 @@ function genRecursiveBacktracker (width, height, seed)
 						continue;
 				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
 				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
-				if (new_dist > dist) {
+				if (new_dist > dist && new_dist != Infinity) {
 					maze.start = neighbor;
 					dist = new_dist;
 					advanced = true;
