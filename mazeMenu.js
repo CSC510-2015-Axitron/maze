@@ -8,7 +8,7 @@
 currentMazeFile = '';
 currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
-algos;
+
 //
 // Enter maze json files here
 // Please leave out '.json' file extension
@@ -622,7 +622,7 @@ function setGameCanvas(loaded) {
 };
 
 var buildAlgoList = function(){
-	algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
 	//console.log(algos);
 	for(var i = 0; i < algos.length; i++){
 	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i]+ '</a></li>');
@@ -869,7 +869,7 @@ $(function() {
       if(curId !== undefined){
       	var sString = curId.slice(0,7)
       	if(sString == "algoNum"){
-      		//var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+      		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
       		var req = '{"algorithm" : "' + algos[curId.slice(7)] + '"}';
       		var gen = remoteDB.HTTPPostGen('/maze/gen', req);
       		this.currentLevel = curId.slice[7];
