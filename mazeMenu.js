@@ -43,7 +43,7 @@ var categories =[
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
-var musicOn = false; //turn the background music on/off
+var musicOn = true; //turn the background music on/off
 
 
 // store data per game!
@@ -950,6 +950,7 @@ $(function() {
       		var gen = remoteDB.HTTPPostGen('/maze/gen', req);
       		this.currentLevel = curId.slice[7];
       		this.currentMaze = gen.maze;
+      		currentMazeFile = gen.displayName;
       		AMaze.model.inject(this.currentMaze, setGameCanvas);
       	}else{
 	      	//this.currentLevel = curId;
