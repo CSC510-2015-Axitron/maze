@@ -399,6 +399,7 @@ function genRecursiveBacktracker (width, height, seed)
         }
     }
 	
+	//Iteratively move endpoints to make them better
 	var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
 	while (true) {
 		var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
