@@ -402,6 +402,7 @@ function genRecursiveBacktracker (width, height, seed)
 	//Iteratively move endpoints to make them better
 	var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
 	while (true) {
+		//Randomize order in which we try
 		var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
 		var neighbor_directions_in_order = [ [0,0], [0,0], [0,0], [0,0] ];
 		var index1 = Math.floor(myRandom() % 4);
@@ -416,7 +417,7 @@ function genRecursiveBacktracker (width, height, seed)
 		neighbor_directions_in_order[3] = neighbor_directions[0];
 		
 		var advanced = false;
-		if (Math.floor(myRandom() % 2) == 0) {
+		if (Math.floor(myRandom() % 2) == 0) { //Decide if we try start or end first
 			for (var i = 0; i < 4; i++) {
 				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
 					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
