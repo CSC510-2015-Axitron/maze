@@ -281,7 +281,6 @@ function distanceBetweenMazePoints(maze, start, end)
 		
 		nodes_open_pqindex[current[0] * maze.height + current[1]] = -1;
 		priority_queue = priority_queue.splice(0, priority_queue.length - 1);
-// alert("Neighbor: " + current + " (Closed: " + nodes_closed[current[0] * maze.height + current[1]] + ")")
 		nodes_closed[current[0] * maze.height + current[1]] = true;
 		var neighbor_directions = [ [-1,0,W_CONST],[0,-1,N_CONST],[1,0,E_CONST],[0,1,S_CONST] ];
 		for (var i = 0; i < neighbor_directions.length; i++) {
@@ -291,11 +290,9 @@ function distanceBetweenMazePoints(maze, start, end)
 			if (current[0] == maze.width -1 && neighbor_direction[0] == 1) continue;
 			if (current[1] == maze.height-1 && neighbor_direction[1] == 1) continue;
 			
-		// alert(maze.board[current[0]][current[1]] + ";" + neighbor_directions[i][2])
 			if (!(maze.board[current[0]][current[1]] & neighbor_directions[i][2])) continue;
 
 			var neighbor = [current[0] + neighbor_direction[0], current[1] + neighbor_direction[1]];
-		// alert(neighbor)
 			if (typeof(nodes_closed) !== 'undefined' && typeof(nodes_closed[neighbor[0] * maze.height + neighbor[1]]) !== 'undefined'
 				&& nodes_closed[neighbor[0] * maze.height + neighbor[1]]) continue;
 
