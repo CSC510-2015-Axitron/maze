@@ -63,7 +63,7 @@ $ = function(obj) {
 			components.removeClass = function(a) {this.removeclassStatus = "a";} //add to the status 
 			components.val = function() {return "input string";}
 			components.click = function(a) {
-				a();
+				//a(); //don't simulate click action for now
 			}
 			components.show = function() {
 				this.status = "showed";

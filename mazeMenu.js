@@ -43,7 +43,7 @@ var categories =[
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
 var mouseAction = {};
-var musicOn = true; //turn the background music on/off
+var soundOn = true; //turn the background music on/off
 
 
 // store data per game!
@@ -260,11 +260,16 @@ var soundWizzard = {
 	},
 
 	musicOn: function() {
-		if (!this.isActive) this.initiate();
+		if (!this.isActive) {
+			this.initiate();
+			this.playMusic();
+		}
 	},
 
-	msuicOff: function() {
+	musicOff: function() {
+		this.stopMusic();
 		this.isActive = false;
+		this.winnerPause = 0;
 	},
 
 	playMusic: function() {
@@ -879,7 +884,7 @@ $(function() {
 		login();
 	});
 
-	if (musicOn) soundWizzard.initiate();
+	soundWizzard.initiate();
 	soundWizzard.playMusic();
 
 	mouseAction = new mouseWorkEngine(document.getElementById("canvas_id"));
@@ -978,6 +983,18 @@ $(function() {
 		}
 	});
 
+	$("#menu_sound").click(function(){console.log("click");
+		if (soundOn) {
+			soundOn = false;
+			soundWizzard.musicOff();
+			$('#menu_sound').text("Sound");
+		}
+		else {
+			soundOn = true;
+			soundWizzard.musicOn();
+			$('#menu_sound').text("Mute");
+		}
+	});
 	 
 
 	$("#menu_load").click(function() {
@@ -998,4 +1015,5 @@ if (typeof exports !== 'undefined'){
 	module.exports.soundWizzard = soundWizzard;
 	module.exports.buildCatsAPIC = buildCatsAPIC;
 	module.exports.buildCats = buildCats;
+	module.exports.soundOn = soundOn;
 }
