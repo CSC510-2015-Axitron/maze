@@ -249,6 +249,9 @@ var N_CONST = 1,
     S_CONST = 4,
     W_CONST = 8;
 
+//Performs an A* Search to get the distance of the shortest path
+//between the specified two points in a maze.
+//Returns infinity if there is no path.
 function distanceBetweenMazePoints(maze, start, end)
 {
 	var nodes_closed = [];
