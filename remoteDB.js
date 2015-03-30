@@ -193,7 +193,7 @@ var remoteDB = {
 		currentMaze = (order == -1? currentMaze: order); //if maze order is -1 use existing counter
 		++currentMaze;
 
-		if (currentMaze >= this.mazeTotal)
+		if (currentMaze >= this.defMazeTotal)
 		{
 			//Final winning thing goes here!
 			this.currMazeID = this.mazeCategory[currentLevel = 0].mazes[currentMaze = 0].mazeno;

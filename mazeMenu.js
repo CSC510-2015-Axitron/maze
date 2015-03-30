@@ -221,7 +221,7 @@ var soundWizzard = {
 		winner: ["sound/winner.mp3", 4214],
 		step: ["sound/step.mp3", 470],
 		block: ["sound/nogo.mp3", 287],
-		finale: ""
+		finale: ["sound/MoveForward.mp3", 70000]
 	},
 
 	playList: [],
@@ -254,7 +254,7 @@ var soundWizzard = {
 		}
 
 		if (this.soundFiles.finale != "") {
-				this.finale = new buzz.sound(this.soundFiles.finale[0], {preload: true});
+				this.finale = new buzz.sound(this.soundFiles.finale[0], {preload: false}); //don't preload because this song is 1:09 long
 				this.finalePause = this.soundFiles.finale[1];
 		}
 
@@ -297,7 +297,7 @@ var soundWizzard = {
 		if (this.winner !== undefined && this.isActive) this.winner.play();
 	},
 
-	playfinale: function() {
+	playFinale: function() {
 		if (this.finale !== undefined && this.isActive) this.finale.play();
 	},
 
