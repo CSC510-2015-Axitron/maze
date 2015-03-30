@@ -24,7 +24,7 @@ Returns a list of categories of mazes available to the player, each category hav
 ```javascript
 //success
 [
-    { "id": 1, "name": "Small Mazes (5-10)" },
+    { "id": (category id), "name": (name) },
     ...
 ]
 
@@ -38,7 +38,7 @@ Returns a list of algorithms available for use when requesting a randomly genera
 ```javascript
 //success
 [
-    { "gen": "recursivebacktracking", "displayName": "Recursive Backtracking" ,
+    { "gen": (gen id), "displayName": (readable name) ,
     ...
 ]
 ```
@@ -48,7 +48,7 @@ Returns the number of mazes stored in the database, both categorized and user-cr
 
 ```javascript
 //success
-{ "mazes": 23 }
+{ "mazes": (number >=0) }
 
 //if the db has an error, status 500
 { "response":"Error occurred" }
@@ -59,9 +59,9 @@ Returns a list of the maze ids and display names for all mazes in the category i
 
 ```javascript
 //success
-{ "category": 1, "categoryName": "Small Mazes (5-10)",
+{ "category": (:category repeated), "categoryName": (name),
     "mazes": [
-        { "mazeno": 19, "displayName": "Dungeon of Smallness" },
+        { "mazeno": (mazeno), "displayName": (name) },
         ...
     ]
 }
@@ -81,8 +81,8 @@ Returns a list of the maze ids and display names for all mazes created by the us
 
 ```javascript
 //success
-{ "userid": "1", "mazes": [
-        { "mazeno": 28, "displayName": "maze1" },
+{ "userid": (:user repeated), "mazes": [
+        { "mazeno": (mazeno), "displayName": (name) },
         ...
     ]
 }
@@ -95,6 +95,28 @@ Returns a list of the maze ids and display names for all mazes created by the us
 
 //if :user does not identify any stored user, status 404
 { "response":"user not found", "query":(:user repeated) }
+```
+
+####/maze/:mazeno
+Returns the maze object identified by :mazeno
+
+```javascript
+//success
+{
+    "mazeno": (mazeno),
+    "displayName": (name),
+    "userForMaze": (userid if owned by user),
+    "height": (height),
+    "width": (width),
+    "mazeJSON": (string representation of the maze),
+    "category": (if in a category, category id)
+}
+
+//if :mazeno does not identify any stored maze, status 404
+{ "response": "maze not found", "query": (:mazeno repeated) }
+
+//if db encounters an error, status 500
+{ "response":"Error occurred" }
 ```
 
 ####/top10/:mazeno
