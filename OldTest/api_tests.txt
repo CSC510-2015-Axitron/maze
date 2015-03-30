@@ -1,0 +1,95 @@
+unauth'd paths
+
+Categories:
+GET /categories
+should get a list
+if any items in list, should be of format item.id, item.name
+
+
+Algorithms:
+GET /algorithms
+should get a list
+if any items in list, should be of format item.gen, item.displayName
+
+
+Mazes:
+GET /mazes
+should get an object
+object should have attribute mazes, with number >= 0
+
+
+Maze Lists:
+
+By Category:
+GET /mazes/category/1
+should get an object
+object should have attributes category, with number 1, categoryName, with string, and mazes, a list
+if length of mazes > 0, items should be in format item.mazeno, item.displayName
+
+GET /mazes/category/0
+should get an object
+object should have attributes response, with "category not found", query, with 0
+
+By User:
+GET /mazes/user/1
+should get an object
+object should have attributes userid, with 1, mazes, with list
+if length of mazes > 0, items should be in format item.mazeno, item.displayName
+
+GET /mazes/user/0
+should get an object
+object should have attributes response, with "user not found", query, with 0
+
+
+Top10:
+GET /top10/19
+should get an object
+object should have attributes maze, with 19, bestTimes, with list
+if length of bestTimes > 0, items should be in format item.mazeno, item.userID, item.bestTime, item.stepsForBestTime
+
+Plays:
+
+By maze:
+GET /play/19/:user
+should get an object
+object should have attributes mazeno, with 19, userid, with 1, bestTime, stepsForBestTime
+
+GET /play/0/1
+should get an object
+object should have attributes response, with "user has not completed level", userid, with 1, mazeno, with 0
+
+GET /play/19/0
+should get an object
+object should have attributes response, with "user has not completed level", userid, with 0, mazeno, with 19
+
+By user:
+GET /played/1
+should get an object
+object should have attributes userid, with 1, played, with list
+if length of played > 0, items should be in format item.mazeno, item.userid, with 1, item.bestTime, item.stepsForBestTime
+
+GET /played/0
+should get an object
+object should have attributes userid, with 0, played, with list
+length of played should be 0
+
+By user and category:
+GET /played/1/1
+should get an object
+object should have attributes userid, with 1, category, with 1, played, with list
+if length of played > 0, items should be in format item.mazeno, item.userid, with 1, item.bestTime, item.stepsForBest 
+
+GET /played/0/1
+should get an object
+object should have attributes userid, with 0, category, with 1, played, with list
+length of played should be 0
+
+GET /played/1/0
+should get an object
+object should have attributes userid, with 1, category, with 0, played, with list
+length of played should be 0
+
+
+Maze:
+GET /maze/19
+should get an object
