@@ -1,4 +1,4 @@
-unauth'd paths
+unauth'd gets
 
 Categories:
 GET /categories
@@ -93,3 +93,11 @@ length of played should be 0
 Maze:
 GET /maze/19
 should get an object
+object should have attributes mazeno, with 19, displayName, userForMaze, with null, height, width, mazeJSON, with a string, category, with 1
+
+GET /maze/0
+should get an object
+object should have attributes response, with "maze not found", query, with 0
+
+unauth'd posts
+
