@@ -169,6 +169,7 @@ function userData(initTime){
         this.resetTimer = function() {
         	startTime = Date.now();
         	counter = 0;
+        	this.step = 0;
         }
 
         this.TimerOff = function() {
