@@ -283,6 +283,17 @@ Refreshes the expiration time for a token.
 { "response":true }
 ```
 
+####/logout
+Logs out the user if token is valid
+
+```javascript
+//success
+{ "response":"logged out" }
+
+//if no authorization header or token invalid
+{ "response":"not logged in" }
+```
+
 ####/user/:user
 Returns the user id and email of user identified by :user
 
