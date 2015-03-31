@@ -493,6 +493,181 @@ function genRecursiveBacktracker (width, height, seed)
     return ret;
 }
 
+//Similar to the above, but uses two instances of simplex noise to weight the direction choices.
+//This results in paths having a tendency to go straight following the coherent direction field
+//produced by the two instances of noise.
+function genRecursiveBacktrackerSimplex(width, height, seed)
+{
+    var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
+    myRandom = seedRandom(seed),
+	simplex = new SimplexNoise(seed),
+	featureSize = 10,
+	plane1 = 0, plane2 = 6,
+    stack = [],
+    maze = {"width":width,"height":height, board:[]};
+    for( var x = width; x--; )
+    {
+        maze.board.push([]);
+        for( var y = height; y--; )
+        {
+            maze.board[width-x-1].push(0);
+        }
+    }
+    //this algorithm always starts at one of the corners and ends in the opposite corner
+    //just because I said so
+    maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)];
+    maze.end = [(width-1)-maze.start[0], (height-1)-maze.start[1]];
+
+    stack.push(maze.start);
+    while(stack.length > 0) {
+        var validSpotCount = 0, validSpotScore = -2, validSpot, dir, antidir, currSpot = stack.peek();
+		var x = currSpot[0];
+		var y = currSpot[1];
+        if(currSpot[0]-1 >= 0 && maze.board[currSpot[0]-1][currSpot[1]] == 0) //w
+        {
+			var score = simplex.noise3D(x / featureSize, y / featureSize, plane1);
+			if (score > validSpotScore) {
+				validSpotScore = score;
+				validSpot = [currSpot[0]-1, currSpot[1]];
+				dir = W_CONST;
+				antidir = E_CONST;
+				validSpotCount++;
+			}
+        }
+        if(currSpot[1]-1 >= 0 && maze.board[currSpot[0]][currSpot[1]-1] == 0) //n
+        {
+			var score = simplex.noise3D(x / featureSize, y / featureSize, plane2);
+			if (score > validSpotScore) {
+				validSpotScore = score;
+				validSpot = [currSpot[0], currSpot[1]-1];
+				dir = N_CONST;
+				antidir = S_CONST;
+				validSpotCount++;
+			}
+        }
+        if(currSpot[0]+1 < width && maze.board[currSpot[0]+1][currSpot[1]] == 0) //e
+        {
+			var score = -simplex.noise3D(x / featureSize, y / featureSize, plane1);
+			if (score > validSpotScore) {
+				validSpotScore = score;
+				validSpot = [currSpot[0]+1, currSpot[1]];
+				dir = E_CONST;
+				antidir = W_CONST;
+				validSpotCount++;
+			}
+        }
+        if(currSpot[1]+1 < height && maze.board[currSpot[0]][currSpot[1]+1] == 0) //s
+        {
+			var score = -simplex.noise3D(x / featureSize, y / featureSize, plane2);
+			if (score > validSpotScore) {
+				validSpotScore = score;
+				validSpot = [currSpot[0], currSpot[1]+1];
+				dir = S_CONST;
+				antidir = N_CONST;
+				validSpotCount++;
+			}
+        }
+        
+        if (validSpotCount == 0) stack.pop();
+        else
+        {
+            stack.push(validSpot);
+            maze.board[currSpot[0]][currSpot[1]] |= dir;
+            maze.board[validSpot[0]][validSpot[1]] |= antidir;
+        }
+    }
+	
+	//Iteratively move endpoints to make them better
+	var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+	while (true) {
+		//Randomize order in which we try
+		var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
+		var neighbor_directions_in_order = [ [0,0], [0,0], [0,0], [0,0] ];
+		var index1 = Math.floor(myRandom() % 4);
+		neighbor_directions_in_order[0] = neighbor_directions[index1];
+		neighbor_directions[index1] = neighbor_directions[3];
+		var index2 = Math.floor(myRandom() % 3);
+		neighbor_directions_in_order[1] = neighbor_directions[index2];
+		neighbor_directions[index2] = neighbor_directions[2];
+		var index3 = Math.floor(myRandom() % 2);
+		neighbor_directions_in_order[2] = neighbor_directions[index3];
+		neighbor_directions[index3] = neighbor_directions[1];
+		neighbor_directions_in_order[3] = neighbor_directions[0];
+		
+		var advanced = false;
+		if (Math.floor(myRandom() % 2) == 0) { //Decide if we try start or end first
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		} else {
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		}
+	}
+	
+    ret.maze = maze;
+    return ret;
+}
+
 var algorithms = {
     "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker}
 };
