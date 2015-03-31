@@ -670,6 +670,7 @@ function genRecursiveBacktrackerSimplex(width, height, seed)
 
 var algorithms = {
     "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker}
+    "recursivebacktrackingsimplex":{"displayName":"Coherent Recursive Backtracking","gen":genRecursiveBacktrackerSimplex}
 };
 
 //algorithm is guaranteed to be one of the registered algorithms
