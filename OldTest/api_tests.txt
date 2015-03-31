@@ -152,3 +152,20 @@ should get an object
 object should have attributes userid, with 1, token, with string
 
 Mazegen:
+POST "{}" /maze/gen
+should get an object
+object should have attribute response, with "no algorithm selected"
+
+POST "{algorithm:'herpderp'}" /maze/gen
+should get an object
+object should have attributes response, with "algorithm not found", query, with "herpderp"
+
+POST "{algorithm:'randomizedprims'}" /maze/gen
+should get an object
+object should have attributes algorithm, with "randomizedprims", displayName, with string, seed, with number, maze, with object
+maze should have attributes width, with number, height, with number, board, with length = width, start, with length 2, end, with length 2
+
+POST "{algorithm:'randomizedprims', seed:1000}" /maze/gen
+should get an object
+object should have attributes algorithm, with "randomizedprims", displayName, with string, seed, with 1000, maze, with object
+maze should have attributes width, with number, height, with number, board, with length = width, start, with length 2, end, with length 2
