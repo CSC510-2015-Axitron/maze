@@ -148,9 +148,7 @@ Returns the user identified by :user's best time on the maze identified by :maze
 }
 
 //if db encounters an error, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ####/played/:user
@@ -186,10 +184,9 @@ Returns a list of the user identified by :user 's best times in a category ident
         ...
     ]
 }
+
 //if the db has an error in retrieving the information, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ###Unauthenticated POST requests
@@ -200,27 +197,19 @@ Submit a registration request.
 
 ```javascript
 //data
-{
-    "email":(user email),
-    "password":(user password)
-}
+{ "email":(user email), "password":(user password) }
+
 //success
-{
-    "response":"user registered",
-    "userid":(user's id)
-}
+{ "response":"user registered", "userid":(user's id) }
+
 //if missing email or password or both, status 400
-{
-    "response":"invalid syntax, missing parameters"
-}
+{ "response":"invalid syntax, missing parameters" }
+
 //if a user is already signed up with the given email, status 400
-{
-    "response":"duplicate email address"
-}
+{ "response":"duplicate email address" }
+
 //if the db encounters an error during the request, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ####/login
@@ -228,35 +217,25 @@ Submits a login request. The login token returned upon success should be put int
 
 ```javascript
 //data
-{
-    "email":(user email),
-    "password":(user password)
-}
+{ "email":(user email), "password":(user password) }
+
 //success
-{
-    "userid":(user's id),
-    "token":(session login token)
-}
+{ "userid":(user's id), "token":(session login token) }
+
 //if there is already a valid authentication token in the authorization header, status 403
-{
-    "response":"already authorized"
-}
+{ "response":"already authorized" }
+
 //if email or password are missing, status 401
-{
-    "response":"No login credentials"
-}
+{ "response":"No login credentials" }
+
 //if user with email given does not exist in the db, status 404
-{
-    "response":"user does not exist"
-}
+{ "response":"user does not exist" }
+
 //if error occurs in looking into the db or checking the hashed pass, status 500
-{
-    "response":"error occured"
-}
+{ "response":"error occured" }
+
 //if given email and password do not match credentials in the db, status 401
-{
-    "response":"invalid login credentials"
-}
+{ "response":"invalid login credentials" }
 ```
 
 ####/maze/gen
@@ -264,25 +243,17 @@ Generates a maze with algorithm and optional seed
 
 ```javascript
 //data
-{
-    algorithm:(picked from /maze/gen/algorithms)
-    (,seed:(number))
-}
+{ algorithm:(picked from /maze/gen/algorithms) (,seed:(number)) }
+
 //success
-{
-    maze:(normal maze data),
-    algorithm:(same as requested),
-    seed:(the used seed, either player specified or randomly generated if not specified)
-}
+{ maze:(normal maze data), algorithm:(same as requested),
+    seed:(the used seed, either player specified or randomly generated if not specified) }
+
 //if algorithm missing, status 400
-{
-    "response":"no algorithm selected"
-}
+{ "response":"no algorithm selected" }
+
 //if algorithm is not recognized as a valid choice, status 404
-{
-    "response":"algorithm not found",
-    "query":(the algorithm repeated)
-}
+{ "response":"algorithm not found", "query":(the algorithm repeated) }
 ```
 
 ###Authenticated GET requests
@@ -301,9 +272,7 @@ $.ajax({
 
 All authenticated requests share a common failure response if the authorization token is missing or invalid (expired), with status 401
 ```javascript
-{
-    "response":"unauthorized token"
-}
+{ "response":"unauthorized token" }
 ```
 
 ####/keepalive
@@ -311,9 +280,7 @@ Refreshes the expiration time for a token.
 
 ```javascript
 //success
-{
-    "response":true
-}
+{ "response":true }
 ```
 
 ####/user/:user
@@ -321,18 +288,13 @@ Returns the user id and email of user identified by :user
 
 ```javascript
 //success
-{
-    "userid":(user's id),
-    "email":(user's email)
-}
+{ "userid":(user's id), "email":(user's email) }
+
 //if user requested is not the same user as token is authorized for, status 403
-{
-    "response":"not authorized"
-}
+{ "response":"not authorized" }
+
 //if db encounters an error, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ###Authenticated POST requests
@@ -342,30 +304,22 @@ Submits a request to edit a user identified by :user
 
 ```javascript
 //data, both email and password are optional, but at least one must be present
-{
-    email:(new email),
-    password:(new password)
-}
+{ email:(new email), password:(new password) }
+
 //success
-{
-    "response":"user updated"
-}
+{ "response":"user updated" }
+
 //if user identified by :user and user identified by token do not match, status 403
-{
-    "response":"not authorized"
-}
+{ "response":"not authorized" }
+
 //if both email and password are missing, status 401
-{
-    "response":"invalid syntax, missing parameters"
-}
+{ "response":"invalid syntax, missing parameters" }
+
 //if new email is a duplicate of another user's email, status 400
-{
-    "response":"duplicate email address"
-}
+{ "response":"duplicate email address" }
+
 //if db encounters an error, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ####/play/:mazeno/:user
@@ -373,41 +327,28 @@ Submits a completion time and step count for maze identified by :mazeno and user
 
 ```javascript
 //data
-{
-    time:(time in ms),
-    steps:(steps)
-}
+{ time:(time in ms), steps:(steps) }
+
 //success, if never beaten before
-{
-    "response":"new best time entered"
-}
+{ "response":"new best time entered" }
+
 //success, if time was better than existing
-{
-    "response":"best time updated"
-}
+{ "response":"best time updated" }
+
 //success, if time was not better than existing
-{
-    "response":"time not better",
-    "bestTime":(time in ms),
-    "stepsForBestTime":(steps)
-}
+{ "response":"time not better", "bestTime":(time in ms), "stepsForBestTime":(steps) }
+
 //if user identified by :user and user identified by token not the same, status 403
-{
-    "response":"not authorized"
-}
+{ "response":"not authorized" }
+
 //if time or steps missing, status 401
-{
-    "response":"invalid syntax, missing parameters"
-}
+{ "response":"invalid syntax, missing parameters" }
+
 //if maze identified by :mazeno does not exist, status 404
-{
-    "response":"maze does not exist",
-    "mazeno":(:maze repeated)
-}
+{ "response":"maze does not exist", "mazeno":(:maze repeated) }
+
 //if db error occurs, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ####/maze
@@ -422,10 +363,10 @@ Submits a new maze to be recorded in player's library of created mazes
         board:[ [ 0,0,... ], [ ], ... [ ] ]
     }
 }
+
 //success
-{
-    "mazeno":(id of the new maze)
-}
+{ "mazeno":(id of the new maze) }
+
 //if the maze is missing or incorrectly formatted, status 400
 {
     "response":"invalid syntax",
@@ -436,10 +377,9 @@ Submits a new maze to be recorded in player's library of created mazes
     //"start not inside board" if the location indicated by maze.start is not within the bounds of maze.board
     //"end not inside board" if the location indicated by maze.end is not within the bounds of maze.board
 }
+
 //if the db encounters an error, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
 ####/maze/:mazeno
@@ -455,22 +395,16 @@ Submits a new maze to replace the one identified by :mazeno
     }
 }
 //success
-{
-    "response":"maze updated"
-}
+{ "response":"maze updated" }
+
 //if the maze is missing or incorrectly formatted, status 400, same as POST /maze
 //if maze identified by :mazeno does not exist, status 404
-{
-    "response":"maze not found",
-    "mazeno":(:mazeno repeated)
-}
+{ "response":"maze not found", "mazeno":(:mazeno repeated) }
+
 //if user identified by token and user that owns maze identified by :mazeno do not match, status 403
-{
-    "response":"not authorized"
-}
+{ "response":"not authorized" }
+
 //if db encounters an error, status 500
-{
-    "response":"Error occurred"
-}
+{ "response":"Error occurred" }
 ```
 
