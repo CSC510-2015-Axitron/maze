@@ -1350,7 +1350,7 @@ methods = {
     //Places a start+endpoint, and repeatedly joins groups via random
 	//walls until there is only one group. Then repeatedly moves the
 	//endpoints if better options seen.
-	genRandomizedKruskals: function(width, height, seed)
+	genRandomizedKruskals : function(width, height, seed)
 	{
 		var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
 		myRandom = seedRandom(seed),
