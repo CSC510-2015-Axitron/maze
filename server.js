@@ -683,6 +683,7 @@ function genRandomizedPrims(width, height, seed)
             maze.board[width-x-1].push(0);
         }
     }
+	
     //this algorithm always starts at one of the corners and ends in the opposite corner
     //just because I said so
     maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)];
@@ -827,10 +828,212 @@ function genRandomizedPrims(width, height, seed)
     return ret;
 }
 
+
+
+//Places a start+endpoint, then keeps removing walls until there's a path.
+//Then removes extra walls so that there are no isolated points,
+//and then iteratively moves the start+endpoints until they're better.
+function genRandomWallRemoval(width, height, seed)
+{
+    var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
+    myRandom = seedRandom(seed),
+    walls = [],
+	points = [],
+    maze = {"width":width,"height":height, board:[]};
+    for( var x = width; x--; )
+    {
+        maze.board.push([]);
+        for( var y = height; y--; )
+        {
+            maze.board[width-x-1].push(0);
+        }
+    }
+    maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)]; //East Berlin
+    maze.end = [(width-1)-maze.start[0], (height-1)-maze.start[1]]; //West Berlin
+	
+	for (var x = 0; x < width; x++) {
+		for (var y = 0; y < height; y++) {
+			if (x != width -1) walls.push([x, y, 0]);
+			if (y != height-1) walls.push([x, y, 1]);
+			points.push([x, y]);
+		}
+	}
+
+	var dist = Infinity;
+	while (dist == Infinity && walls.length > 0) {
+		var wall_index = Math.floor(myRandom() * (walls.length-1));
+		var wall = walls[wall_index];
+		walls[wall_index] = walls[walls.length - 1];
+		walls = walls.splice(0, walls.length - 1);
+		
+		//Mr. Gorbachev, tear down this wall!
+		if (wall[2] == 0) { //Horz
+			maze.board[wall[0]  ][wall[1]] |= E_CONST;
+			maze.board[wall[0]+1][wall[1]] |= W_CONST;
+		} else { //Vert
+			maze.board[wall[0]][wall[1]  ] |= S_CONST;
+			maze.board[wall[0]][wall[1]+1] |= N_CONST;
+		}
+		
+		dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+	}
+	
+	while (points.length > 0) {
+		var point_index = Math.floor(myRandom() * (points.length-1));
+		var point = points[point_index];
+		points[point_index] = points[points.length - 1];
+		points = points.splice(0, points.length - 1);
+		
+		//If this point is isolated, draw a path from it to somewhere.
+		if (maze.board[point[0]][point[1]] == 0) {
+			var validSpotScore = -1, validSpot, dir, antidir, currSpot = point;
+			var valid
+			if(currSpot[0]-1 >= 0) //w
+			{
+				var otherPoint = maze.board[currSpot[0]-1][currSpot[1]];
+				var score = (otherPoint & N_CONST ? 0 : 1) + (otherPoint & E_CONST ? 0 : 1)
+					 + (otherPoint & S_CONST ? 0 : 1) + (otherPoint & S_CONST ? 0 : 1);
+				if (score > validSpotScore) {
+					validSpot = [currSpot[0]-1, currSpot[1]];
+					dir = W_CONST;
+					antidir = E_CONST;
+				}
+			}
+			if(currSpot[1]-1 >= 0) //n
+			{
+				var otherPoint = maze.board[currSpot[0]][currSpot[1]-1];
+				var score = (otherPoint & N_CONST ? 0 : 1) + (otherPoint & E_CONST ? 0 : 1)
+					 + (otherPoint & S_CONST ? 0 : 1) + (otherPoint & S_CONST ? 0 : 1);
+				if (score > validSpotScore) {
+					validSpot = [currSpot[0], currSpot[1]-1];
+					dir = N_CONST;
+					antidir = S_CONST;
+				}
+			}
+			if(currSpot[0]+1 < width) //e
+			{
+				var otherPoint = maze.board[currSpot[0]+1][currSpot[1]];
+				var score = (otherPoint & N_CONST ? 0 : 1) + (otherPoint & E_CONST ? 0 : 1)
+					 + (otherPoint & S_CONST ? 0 : 1) + (otherPoint & S_CONST ? 0 : 1);
+				if (score > validSpotScore) {
+					validSpot = [currSpot[0]+1, currSpot[1]];
+					dir = E_CONST;
+					antidir = W_CONST;
+				}
+			}
+			if(currSpot[1]+1 < height) //s
+			{
+				var otherPoint = maze.board[currSpot[0]][currSpot[1]+1];
+				var score = (otherPoint & N_CONST ? 0 : 1) + (otherPoint & E_CONST ? 0 : 1)
+					 + (otherPoint & S_CONST ? 0 : 1) + (otherPoint & S_CONST ? 0 : 1);
+				if (score > validSpotScore) {
+					validSpot = [currSpot[0], currSpot[1]+1];
+					dir = S_CONST;
+					antidir = N_CONST;
+				}
+			}
+            maze.board[currSpot[0]][currSpot[1]] |= dir;
+            maze.board[validSpot[0]][validSpot[1]] |= antidir;
+		}
+	}
+	
+	//Iteratively move endpoints to make them better
+	var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+	while (true) {
+		//Randomize order in which we try
+		var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
+		var neighbor_directions_in_order = [ [0,0], [0,0], [0,0], [0,0] ];
+		var index1 = Math.floor(myRandom() % 4);
+		neighbor_directions_in_order[0] = neighbor_directions[index1];
+		neighbor_directions[index1] = neighbor_directions[3];
+		var index2 = Math.floor(myRandom() % 3);
+		neighbor_directions_in_order[1] = neighbor_directions[index2];
+		neighbor_directions[index2] = neighbor_directions[2];
+		var index3 = Math.floor(myRandom() % 2);
+		neighbor_directions_in_order[2] = neighbor_directions[index3];
+		neighbor_directions[index3] = neighbor_directions[1];
+		neighbor_directions_in_order[3] = neighbor_directions[0];
+		
+		var advanced = false;
+		if (Math.floor(myRandom() % 2) == 0) { //Decide if we try start or end first
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		} else {
+			for (var i = 0; i < 4; i++) {
+				if ((maze.end[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.end[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.end[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.end = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (advanced) continue;
+			for (var i = 0; i < 4; i++) {
+				if ((maze.start[0] == 0 && neighbor_directions_in_order[i][0] == -1)
+					|| (maze.start[1] == 0 && neighbor_directions_in_order[i][1] == -1)
+					|| (maze.start[0] == maze.width -1 && neighbor_directions_in_order[i][0] == 1)
+					|| (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
+						continue;
+				var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
+				var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+				if (new_dist > dist && new_dist != Infinity) {
+					maze.start = neighbor;
+					dist = new_dist;
+					advanced = true;
+					break;
+				}
+			}
+			if (!advanced) break;
+		}
+	}
+	
+	ret.maze = maze;
+	return ret; //Ich bin ein Berliner!
+}
+
+
 var algorithms = {
     "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker}
     "recursivebacktrackingsimplex":{"displayName":"Coherent Recursive Backtracking","gen":genRecursiveBacktrackerSimplex}
     "randomizedprims":{"displayName":"Randomized Prim's","gen":genRandomizedPrims}
+    "randomwallremoval":{"displayName":"Random Wall Removal","gen":genRandomWallRemoval}
 };
 
 //algorithm is guaranteed to be one of the registered algorithms
