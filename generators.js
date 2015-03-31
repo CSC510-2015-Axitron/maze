@@ -3,15 +3,14 @@ Array.prototype.peek = function() {
     return this[this.length-1];
 };
 
+//convenience constants
+var N_CONST = 1,
+E_CONST = 2,
+S_CONST = 4,
+W_CONST = 8,
+
 //actual exported code
-module.exports = {
-
-    //convenience constants
-    N_CONST : 1,
-    E_CONST : 2,
-    S_CONST : 4,
-    W_CONST : 8,
-
+methods = {
     //to get a seedable random function
     seedRandom : function(s) {
         return function() {
@@ -118,7 +117,7 @@ module.exports = {
     genRecursiveBacktracker : function(width, height, seed)
     {
         var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-        myRandom = seedRandom(seed),
+        myRandom = methods.seedRandom(seed),
         stack = [],
         maze = {"width":width,"height":height, board:[]};
         for( var x = width; x--; )
@@ -173,7 +172,7 @@ module.exports = {
         }
 
         //Iteratively move endpoints to make them better
-        var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+        var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         while (true) {
             //Randomize order in which we try
             var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
@@ -198,7 +197,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -214,7 +213,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -231,7 +230,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -247,7 +246,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -269,7 +268,7 @@ module.exports = {
     genRecursiveBacktrackerSimplex : function(width, height, seed)
     {
         var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-        myRandom = seedRandom(seed),
+        myRandom = methods.seedRandom(seed),
         simplex = new SimplexNoise(seed),
         featureSize = 10,
         plane1 = 0, plane2 = 6,
@@ -348,7 +347,7 @@ module.exports = {
         }
 
         //Iteratively move endpoints to make them better
-        var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+        var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         while (true) {
             //Randomize order in which we try
             var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
@@ -373,7 +372,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -389,7 +388,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -406,7 +405,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -422,7 +421,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -442,7 +441,7 @@ module.exports = {
     genRandomizedPrims : function(width, height, seed)
     {
         var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-        myRandom = seedRandom(seed),
+        myRandom = methods.seedRandom(seed),
         walls = [],
         maze = {"width":width,"height":height, board:[]};
         for( var x = width; x--; )
@@ -508,7 +507,7 @@ module.exports = {
         }
 
         //Iteratively move endpoints to make them better
-        var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+        var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         while (true) {
             //Randomize order in which we try
             var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
@@ -533,7 +532,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -549,7 +548,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -566,7 +565,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -582,7 +581,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -606,7 +605,7 @@ module.exports = {
     genRandomWallRemoval : function(width, height, seed)
     {
         var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-        myRandom = seedRandom(seed),
+        myRandom = methods.seedRandom(seed),
         walls = [],
         points = [],
         maze = {"width":width,"height":height, board:[]};
@@ -645,7 +644,7 @@ module.exports = {
                 maze.board[wall[0]][wall[1]+1] |= N_CONST;
             }
 
-            dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+            dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         }
 
         while (points.length > 0) {
@@ -708,7 +707,7 @@ module.exports = {
         }
 
         //Iteratively move endpoints to make them better
-        var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+        var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         while (true) {
             //Randomize order in which we try
             var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
@@ -733,7 +732,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -749,7 +748,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -766,7 +765,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -782,7 +781,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -807,7 +806,7 @@ module.exports = {
     genRandomWallAddition : function(width, height, seed)
     {
         var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-        myRandom = seedRandom(seed),
+        myRandom = methods.seedRandom(seed),
         walls = [],
         maze = {"width":width,"height":height, board:[]};
         for( var x = width; x--; )
@@ -852,7 +851,7 @@ module.exports = {
                 maze.board[wall[0]][wall[1]+1] ^= N_CONST;
             }
 
-            var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+            var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
             if (dist == Infinity) { //We dun goofed, we gotta go back
                 if (wall[2] == 0) { //Horz
                     maze.board[wall[0]  ][wall[1]] ^= E_CONST;
@@ -866,7 +865,7 @@ module.exports = {
         }
 
         //Iteratively move endpoints to make them better
-        var dist = distanceBetweenMazePoints(maze, maze.start, maze.end);
+        var dist = methods.distanceBetweenMazePoints(maze, maze.start, maze.end);
         while (true) {
             //Randomize order in which we try
             var neighbor_directions = [ [-1,0],[0,-1],[1,0],[0,1] ];
@@ -891,7 +890,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -907,7 +906,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -924,7 +923,7 @@ module.exports = {
                         || (maze.end[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.end[0] + neighbor_directions_in_order[i][0], maze.end[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, maze.start, neighbor);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, maze.start, neighbor);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.end = neighbor;
                         dist = new_dist;
@@ -940,7 +939,7 @@ module.exports = {
                         || (maze.start[1] == maze.height-1 && neighbor_directions_in_order[i][1] == 1))
                             continue;
                     var neighbor = [maze.start[0] + neighbor_directions_in_order[i][0], maze.start[1] + neighbor_directions_in_order[i][1]];
-                    var new_dist = distanceBetweenMazePoints(maze, neighbor, maze.end);
+                    var new_dist = methods.distanceBetweenMazePoints(maze, neighbor, maze.end);
                     if (new_dist > dist && new_dist != Infinity) {
                         maze.start = neighbor;
                         dist = new_dist;
@@ -955,4 +954,6 @@ module.exports = {
         ret.maze = maze;
         return ret;
     }
-}
+};
+
+module.exports = methods;
