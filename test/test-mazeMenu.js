@@ -238,6 +238,9 @@ CE.defines = function(name) {
 
 	return a;
 }
+Keen = function(){
+	//stuff
+}
 
 //buzz.js mock object
 buzz = {
