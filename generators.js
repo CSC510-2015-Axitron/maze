@@ -3,6 +3,7 @@ Array.prototype.peek = function() {
     return this[this.length-1];
 };
 
+//This simplex noise code is used for one of the generators to generate a coherent direction field.
 /*
  * A fast javascript implementation of simplex noise by Jonas Wagner
  *
