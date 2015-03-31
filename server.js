@@ -241,7 +241,8 @@ var algorithms = {
     "recursivebacktrackingsimplex":{"displayName":"Coherent Recursive Backtracking","gen":generators.genRecursiveBacktrackerSimplex},
     "randomizedprims":{"displayName":"Randomized Prim's","gen":generators.genRandomizedPrims},
     "randomwallremoval":{"displayName":"Random Wall Removal","gen":generators.genRandomWallRemoval},
-    "randomwalladdition":{"displayName":"Random Wall Addition","gen":generators.genRandomWallAddition}
+    "randomwalladdition":{"displayName":"Random Wall Addition","gen":generators.genRandomWallAddition},
+    "randomizedkruskals":{"displayName":"Randomized Kruskal's","gen":generators.genRandomizedKruskals}
 };
 
 //algorithm is guaranteed to be one of the registered algorithms
