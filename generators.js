@@ -1191,8 +1191,6 @@ methods = {
         return ret; //Ich bin ein Berliner!
     },
 
-/*
-
     //Places a start+endpoint, enables all paths, then keeps adding walls,
     //with the exception of those that break the path, or cause
     //isolated points.
@@ -1347,7 +1345,7 @@ methods = {
 
         ret.maze = maze;
         return ret;
-    }
+    },
 	
     //Places a start+endpoint, and repeatedly joins groups via random
 	//walls until there is only one group. Then repeatedly moves the
@@ -1522,7 +1520,7 @@ methods = {
 		
 		ret.maze = maze;
 		return ret;
-	}*/
+	}
 };
 
 module.exports = methods;
