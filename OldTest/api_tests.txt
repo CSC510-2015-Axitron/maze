@@ -193,6 +193,16 @@ should get an object
 object should have attribute response, with true
 
 
+Logout:
+GET /logout headers:{"authorization":(invalid token)}
+should get an object
+object should have attribute response, with "not logged in"
+
+GET /logout headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "logged out"
+
+
 User:
 GET /user/0 headers:{"authorization":(valid token)}
 should get an object
