@@ -1188,10 +1188,10 @@ function genRandomWallAddition(width, height, seed)
 
 
 var algorithms = {
-    "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker}
-    "recursivebacktrackingsimplex":{"displayName":"Coherent Recursive Backtracking","gen":genRecursiveBacktrackerSimplex}
-    "randomizedprims":{"displayName":"Randomized Prim's","gen":genRandomizedPrims}
-    "randomwallremoval":{"displayName":"Random Wall Removal","gen":genRandomWallRemoval}
+    "recursivebacktracking":{"displayName":"Recursive Backtracking","gen":genRecursiveBacktracker},
+    "recursivebacktrackingsimplex":{"displayName":"Coherent Recursive Backtracking","gen":genRecursiveBacktrackerSimplex},
+    "randomizedprims":{"displayName":"Randomized Prim's","gen":genRandomizedPrims},
+    "randomwallremoval":{"displayName":"Random Wall Removal","gen":genRandomWallRemoval},
     "randomwalladdition":{"displayName":"Random Wall Addition","gen":genRandomWallAddition}
 };
 
@@ -1575,9 +1575,6 @@ restapi.listen(port, function() {
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-(function () {
-"use strict";
-
 var F2 = 0.5 * (Math.sqrt(3.0) - 1.0),
     G2 = (3.0 - Math.sqrt(3.0)) / 6.0,
     F3 = 1.0 / 3.0,
@@ -1939,6 +1936,3 @@ SimplexNoise.prototype = {
 
 
 };
-self.SimplexNoise = SimplexNoise;
-
-})();
