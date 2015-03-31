@@ -9,6 +9,17 @@ currentMazeFile = '';
 currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
 
+
+//Keen stuff.
+var client = new Keen({
+    projectId: "551ad76c59949a707edddefa",   // String (required always)
+    writeKey: "007d73a3fcca63fa1571ad9ffc0060b88623515ca1d2a42b8b466b20f11fa1f95fb5317ebf8ac3d1d1b392f6c98a8b36904524f4acd686179e82283c7b4aec7aac824a2fa66803f815451e287f6c92f054808d4901510d9f7d4277d6e542047bca663b35fdacb8a5358ee0faf6ece937",     // String (required for sending data)
+    protocol: "https",              // String (optional: https | http | auto)
+    host: "api.keen.io/3.0",        // String (optional)
+    requestType: "jsonp"            // String (optional: jsonp, xhr, beacon)
+  });
+
+
 //
 // Enter maze json files here (for local JSON files ONLY!)
 // Please leave out '.json' file extension
@@ -677,25 +688,30 @@ var updateCats = function(){
 var buildAlgoList = function(){
 	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
 	//console.log(algos);
+	var finAppend = "";
 	for(var i = 0; i < algos.length; i++){
-	    var x = $('<li id=algoNum' + i + '><a href="#">' + algos[i].displayName+ '</a></li>');
-	    sub = $('#sub5');
-	    sub.append(x);
+	    var x = '<li id=algoNum' + i + '><a href="#">' + algos[i].displayName+ '</a></li>';
+	    finAppend += x;
 	}
+	sub = $('#sub5');
+	sub.append(finAppend);
 };
 
 var buildCats = function (){
-    var sub
+    var sub;
     var count = 0;
+    var finAppend = "";
     for(var i = 0; i < categories.length; i++){  
         var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
         count++;
         for(var j = 0; j < mazeInCat.mazes.length; j++){
-            var x = $('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>');
-            sub = $('#sub' + (count));
-            sub.append(x);
+            var x = '<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>';
+            finAppend += x;
             //console.log("count is  " + count);
         }
+        sub = $('#sub' + (count));
+        sub.append(finAppend);
+        finAppend = "";
     };
 };
 
@@ -783,6 +799,17 @@ $(function() {
 			console.log('failed to load');
 		}
 		$("#dsp_level").text(currentMazeFile);
+		var clickEvent = {
+      			item: "Hand Written",
+      			name: currentMazeFile
+      		}
+  		client.addEvent("level_select", clickEvent, function(err,res){
+  			if(err){
+  				console.log("error occurred: " + err);
+  			}else{
+  				console.log("successful: " + res);
+  			}
+  		})
 		$('#load-form').dialog('close');
 	},
 	register = function() {
@@ -946,7 +973,7 @@ $(function() {
         $("ul",this).toggle('fast');
     });
 
-    $("ul").on('click', 'li', function(){
+    $("ul.sub-menu-sidr").on('click', 'li', function(){
       var curId = $(this).attr('id');
       if(curId !== undefined){
       	var sString = curId.slice(0,7)
@@ -957,13 +984,37 @@ $(function() {
       		this.currentLevel = curId.slice[7];
       		this.currentMaze = gen.maze;
       		currentMazeFile = gen.displayName;
+      		var clickEvent = {
+      			item: "Procedurally Generated",
+      			name: gen.displayName
+      		}
+      		client.addEvent("level_select", clickEvent, function(err,res){
+      			if(err){
+      				console.log("error occurred: " + err);
+      			}else{
+      				console.log("successful: " + res);
+      			}
+      		})
+
       		AMaze.model.inject(this.currentMaze, setGameCanvas);
       	}else{
 	      	//this.currentLevel = curId;
 	      	//var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
 			//this.currentMaze = JSON.parse(obj.mazeJSON);
 			//AMaze.model.inject(this.currentMaze, setGameCanvas);
+
 			remoteDB.getMazeByMazeno(curId);
+			var clickEvent = {
+      			item: "Hand Written",
+      			name: currentMazeFile
+      		}
+      		client.addEvent("level_select", clickEvent, function(err,res){
+      			if(err){
+      				console.log("error occurred: " + err);
+      			}else{
+      				console.log("successful: " + res);
+      			}
+      		})
 			$("#dsp_level").text(currentMazeFile);
 		}
 		$.sidr('toggle');
