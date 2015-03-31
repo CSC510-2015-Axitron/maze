@@ -101,3 +101,54 @@ object should have attributes response, with "maze not found", query, with 0
 
 unauth'd posts
 
+Registration:
+POST "{}" /register
+should get an object
+object should have attribute response, with "invalid syntax, missing parameters"
+
+POST "{email:'herp@herp.herp'}" /register
+should get an object
+object should have attribute response, with "invalid syntax, missing parameters"
+
+POST "{password:'derp'}" /register
+should get an object
+object should have attribute response, with "invalid syntax, missing parameters"
+
+POST "{email:'dummy1@dum.my',password:'derp'}" /register
+should get an object
+object should have attribute response, with "duplicate email address"
+
+POST "{email:'testtest@test.test',password:'derp'}" /register
+should get an object
+object should have attributes response, with "user registered", userid, with number
+
+Login:
+POST "{}" /login headers:{"authorization:(valid token)"}
+should get an object
+object should have attribute reponse, with "already authorized"
+
+POST "{}" /login
+should get an object
+object should have attribute response, with "No login credentials"
+
+POST "{email:'herp@herp.herp'}" /login
+should get an object
+object should have attribute response, with "No login credentials"
+
+POST "{password:'derp'}" /login
+should get an object
+object should have attribute response, with "No login credentials"
+
+POST "{email:'herpaderp',password:'testpassword1'}" /login
+should get an object
+object should have attribute response, with "user does not exist"
+
+POST "{email:'dummy1@dum.my',password:'testpassword'}" /login
+should get an object
+object should have attribute response, with "invalid login credentials"
+
+POST "{email:'dummy1@dum.my',password:'testpassword1'}" /login
+should get an object
+object should have attributes userid, with 1, token, with string
+
+Mazegen:
