@@ -1353,7 +1353,7 @@ methods = {
 	genRandomizedKruskals : function(width, height, seed)
 	{
 		var ret = {"seed":(seed || Math.floor(Math.random() * 5000000))},
-		myRandom = seedRandom(seed),
+		myRandom = methods.seedRandom(seed),
 		walls = [],
 		cellParents = [],
 		maze = {"width":width,"height":height, board:[]};
