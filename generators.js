@@ -1210,8 +1210,8 @@ methods = {
                 maze.board[width-x-1].push(0);
             }
         }
-        maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)]; //East Berlin
-        maze.end = [(width-1)-maze.start[0], (height-1)-maze.start[1]]; //West Berlin
+        maze.start = [Math.round(myRandom())*(width-1), Math.round(myRandom())*(height-1)];
+        maze.end = [(width-1)-maze.start[0], (height-1)-maze.start[1]];
 
         for (var x = 0; x < width; x++) {
             for (var y = 0; y < height; y++) {
