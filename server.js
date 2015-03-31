@@ -327,10 +327,10 @@ function distanceBetweenMazePoints(maze, start, end)
 				//Pushes it forward in the queue if it was behind
 				while (pq_index != priority_queue.length-1 && nodes_fscore[priority_queue[pq_index][0] * maze.height + priority_queue[pq_index][1]]
 						< nodes_fscore[priority_queue[pq_index+1][0] * maze.height + priority_queue[pq_index+1][1]]) {
-					var one_that_was_ahead = priority_queue[pq_index];
-					var one_that_was_behind = priority_queue[pq_index-1];
-					priority_queue[pq_index-1] = one_that_was_ahead;
-					priority_queue[pq_index] = one_that_was_behind;
+					var one_that_was_ahead = priority_queue[pq_index+1];
+					var one_that_was_behind = priority_queue[pq_index];
+					priority_queue[pq_index] = one_that_was_ahead;
+					priority_queue[pq_index+1] = one_that_was_behind;
 					nodes_open_pqindex[one_that_was_ahead[0] * maze.height + one_that_was_ahead[1]]--;
 					nodes_open_pqindex[one_that_was_behind[0] * maze.height + one_that_was_behind[1]]++;
 					pq_index++;
