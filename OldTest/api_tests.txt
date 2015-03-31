@@ -1,3 +1,4 @@
+###############
 unauth'd gets
 
 Categories:
@@ -99,6 +100,7 @@ GET /maze/0
 should get an object
 object should have attributes response, with "maze not found", query, with 0
 
+###############
 unauth'd posts
 
 Registration:
@@ -121,6 +123,7 @@ object should have attribute response, with "duplicate email address"
 POST "{email:'testtest@test.test',password:'derp'}" /register
 should get an object
 object should have attributes response, with "user registered", userid, with number
+
 
 Login:
 POST "{}" /login headers:{"authorization:(valid token)"}
@@ -151,6 +154,7 @@ POST "{email:'dummy1@dum.my',password:'testpassword1'}" /login
 should get an object
 object should have attributes userid, with 1, token, with string
 
+
 Mazegen:
 POST "{}" /maze/gen
 should get an object
@@ -169,3 +173,59 @@ POST "{algorithm:'randomizedprims', seed:1000}" /maze/gen
 should get an object
 object should have attributes algorithm, with "randomizedprims", displayName, with string, seed, with 1000, maze, with object
 maze should have attributes width, with number, height, with number, board, with length = width, start, with length 2, end, with length 2
+
+###############
+auth'd gets (assume logged in with dummy1@dum.my/testpassword1, user id 1)
+
+Auth:
+GET /keepalive
+should get an object
+object should have attribute response, with "unauthorized token"
+
+GET /keepalive headers:{"authorization":(invalid token)}
+should get an object
+object should have attribute response, with "unauthorized token"
+
+
+Keepalive:
+GET /keepalive headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with true
+
+
+User:
+GET /user/0 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "not authorized"
+
+GET /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attributes userid, with 1, email, with "dummy1@dum.my"
+
+###############
+auth'd posts (assumed logged in with dummy1@dum.my/testpassword1, user id 1)
+
+User:
+POST "{}" /user/0 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "not authorized"
+
+POST "{}" /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "invalid syntax, missing parameters"
+
+POST "{email:'dummy2@dum.my'}" /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "duplicate email address"
+
+POST "{email:'dummy1@dum.my'}" /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "user updated"
+
+POST "{password:'testpassword1'}" /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "user updated"
+
+POST "{email:'dummy1@dum.my', password:'testpassword1'}" /user/1 headers:{"authorization":(valid token)}
+should get an object
+object should have attribute response, with "user updated"
