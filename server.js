@@ -312,6 +312,7 @@ function distanceBetweenMazePoints(maze, start, end)
 					pq_index = nodes_open_pqindex[neighbor[0] * maze.height + neighbor[1]];
 				}
 				
+				//Pushes it back in the queue if it was ahead
 				while (pq_index != 0 && nodes_fscore[priority_queue[pq_index][0] * maze.height + priority_queue[pq_index][1]] >
 						nodes_fscore[priority_queue[pq_index-1][0] * maze.height + priority_queue[pq_index-1][1]]) {
 					var one_that_was_ahead = priority_queue[pq_index];
@@ -322,6 +323,8 @@ function distanceBetweenMazePoints(maze, start, end)
 					nodes_open_pqindex[one_that_was_behind[0] * maze.height + one_that_was_behind[1]]++;
 					pq_index--;
 				}
+				
+				//Pushes it forward in the queue if it was behind
 				while (pq_index != priority_queue.length-1 && nodes_fscore[priority_queue[pq_index][0] * maze.height + priority_queue[pq_index][1]]
 						< nodes_fscore[priority_queue[pq_index+1][0] * maze.height + priority_queue[pq_index+1][1]]) {
 					var one_that_was_ahead = priority_queue[pq_index];
