@@ -11,6 +11,12 @@ currentMaze = -1;  //the order of maze in which they appear in the directory
 
 
 //Keen stuff.
+var KeenOn;
+if (typeof Keen == "undefined") {  //workaround to prevent localsite without Node.js from failing
+	Keen = function(){}; 
+	KeenOn = false;
+}
+else KeenOn = true;
 var client = new Keen({
     projectId: "551ad76c59949a707edddefa",   // String (required always)
     writeKey: "007d73a3fcca63fa1571ad9ffc0060b88623515ca1d2a42b8b466b20f11fa1f95fb5317ebf8ac3d1d1b392f6c98a8b36904524f4acd686179e82283c7b4aec7aac824a2fa66803f815451e287f6c92f054808d4901510d9f7d4277d6e542047bca663b35fdacb8a5358ee0faf6ece937",     // String (required for sending data)
@@ -803,7 +809,7 @@ $(function() {
       			item: "Hand Written",
       			name: currentMazeFile
       		}
-  		client.addEvent("level_select", clickEvent, function(err,res){
+  		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
   			if(err){
   				console.log("error occurred: " + err);
   			}else{
@@ -988,7 +994,7 @@ $(function() {
       			item: "Procedurally Generated",
       			name: gen.displayName
       		}
-      		client.addEvent("level_select", clickEvent, function(err,res){
+      		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
       			if(err){
       				console.log("error occurred: " + err);
       			}else{
@@ -1008,7 +1014,7 @@ $(function() {
       			item: "Hand Written",
       			name: currentMazeFile
       		}
-      		client.addEvent("level_select", clickEvent, function(err,res){
+      		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
       			if(err){
       				console.log("error occurred: " + err);
       			}else{
