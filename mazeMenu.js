@@ -913,6 +913,15 @@ $(function() {
 			}
 		}
 	}),
+        likedMazeDialog = $('#liked-maze-dialog').dialog({
+                autoOpen: false,
+                dialogClass: 'no-close',
+                modal: true,
+                buttons: {
+                    Yes: function() {},
+                    No: function() {}
+                }
+        }),
 	form = loginDialog.find( "form" ).on( "submit", function( event ) {
 		event.preventDefault();
 		login();
