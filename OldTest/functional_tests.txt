@@ -1,0 +1,61 @@
+Normal path:
+Hit login and use valid information (dummy1@dum.my/testpassword1)
+Load a level from the side menu (recommend one of the small levels)
+Play through the level
+Get the happy music
+Hit the mute button
+Play the next level, don't get the happy music
+Logout
+
+Logins:
+Invalid login:
+Hit login and attempt to login using proper email but improper password (dummy1@dum.my/derp)
+Should get message for invalid login information
+
+Invalid email:
+Hit login and attempt to login using improper email (dummy1@dum.m/derp)
+Should get message for unknown user email
+
+Registration:
+Valid:
+Hit login and enter a valid new email and password
+Hit register
+Should get messages for both logged in and registered
+
+Invalid email:
+Hit login and enter an old email (dummy1@dum.my/whatever)
+Hit register
+Should get message for email already in use
+
+Level select:
+Maybe don't do this because we're changing it?
+
+Designer:
+Base:
+Stay logged out
+Designer button shouldn't appear
+Manually redirecting to /designer should work
+No user email should be visible
+No load/save buttons should be visible
+Maze name/mazeno display shouldn't be visible
+Set size should work, and update JSON
+Updating json and pressing enter should update maze display
+Double clicking on a cell should change it to start
+Clicking the end selector and double clicking a cell should change it to end
+
+Normal:
+Login using valid information (dummy1@dum.my/testpassword1)
+Create button should appear
+Clicking create should redirect to /designer
+Designer should stay logged in
+User email should be in UI element next to load/save
+Load/save should appear
+Mazeno and display name should appear
+Clicking load should give a list of mazes
+Clicking one of the mazes should load a maze
+Clicking a wall should toggle the wall and update the JSON below (suggest changing one around 0,0)
+Clicking save should bring up a dialog with options save as new, overwrite, and cancel
+Clicking overwrite should close the dialog
+Clicking load should give the list of mazes again, select a different maze
+Click load again and load the overwritten maze
+Changes should be reflected
