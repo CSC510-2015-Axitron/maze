@@ -57,7 +57,8 @@ var categories =[
         "name": "Huge Mazes (30+)"
     }
 ],
-likedMazeDialog;
+likedMazeDialog,
+mazeTitleDisplay = "";
 
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
@@ -702,10 +703,10 @@ var getRandomLevelInCat = function (catId){
             levelIsHand = false;
             var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
             var rand3 = getRandomInt(0, algos.length - 1);
-            var req = JSON.stringify({"algorithm":algos[rand3].gen,"seed":100000*catId + Math.random()*1000});
+            var req = JSON.stringify({"algorithm":algos[rand3].gen,"seed":10000*catId + Math.random()*10000});
             var gen = remoteDB.HTTPPostGen('/maze/gen', req);
             this.currentMaze = gen.maze;
-            currentMazeFile = gen.displayName;
+            currentMazeFile = "Size: "+gen.maze.width+"x"+gen.maze.height;
             console.log("getting maze from "+algos[rand3].gen);
             AMaze.model.inject(this.currentMaze, setGameCanvas);
 	}

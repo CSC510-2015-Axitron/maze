@@ -172,7 +172,7 @@ var remoteDB = {
 		if (obj.response != "maze not found") {
 			this.currMazeID = mazeno;
 			this.currMazeObj = JSON.parse(obj.mazeJSON);
-			currentMazeFile = obj.displayName; //global parameters!
+			currentMazeFile = "Size: "+this.currMazeObj.width+"x"+this.currMazeObj.height; //global parameters!
 			AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
 			return true;
 		}
@@ -220,7 +220,7 @@ var remoteDB = {
 
 		var obj = this.HTTPGet("/maze/"+this.currMazeID.toString());
 		this.currMazeObj = JSON.parse(obj.mazeJSON);
-		currentMazeFile = obj.displayName; //global parameters!
+		currentMazeFile = "Size: "+this.currMazeObj.width+"x"+this.currMazeObj.height; //global parameters!
 
 		return this.currMazeObj;
 	},
