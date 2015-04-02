@@ -698,8 +698,7 @@ var getRandomLevelInCat = function (catId){
             console.log("getting maze "+rand);
             levelIsHand = true;
             remoteDB.getMazeByMazeno(rand);
-	}
-        else {
+	}else {
             levelIsHand = false;
             var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
             var rand3 = getRandomInt(0, algos.length - 1);
@@ -897,12 +896,47 @@ $(function() {
                     Yes: function() {
                         randomBias+=10*(levelIsHand*2-1);
                         console.log(randomBias);
+                        //keen related stuff
+                        var levelType = null
+                        if(levelIsHand){
+                        	levelType = "Hand Written";
+                        }else{
+                        	levelType = "Procedurally Generated";
+                        }
+                        var clickEvent = {
+			      			item: levelType,
+      						liked: "Yes"
+      					}
+      					client.addEvent("sentiment", clickEvent, function(err,res){
+      						if(err){
+      							console.log("error occurred: " + err);
+      						}else{
+      							console.log("successful: " + res);
+      						}
+      					})
                         likedMazeDialog.dialog("close");
                         afterLiked();
                     },
                     No: function() {
                         randomBias-=10*(levelIsHand*2-1);
                         console.log(randomBias);
+                        var levelType = null
+                        if(levelIsHand){
+                        	levelType = "Hand Written";
+                        }else{
+                        	levelType = "Procedurally Generated";
+                        }
+                        var clickEvent = {
+			      			item: levelType,
+      						liked: "No"
+      					}
+      					client.addEvent("sentiment", clickEvent, function(err,res){
+      						if(err){
+      							console.log("error occurred: " + err);
+      						}else{
+      							console.log("successful: " + res);
+      						}
+      					})
                         likedMazeDialog.dialog("close");
                         afterLiked();
                     }
