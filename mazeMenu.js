@@ -126,16 +126,18 @@ function updateStatus(maze) {
 		inputLock = mouseAction.inputLock = true; //lock input device
 		remoteDB.updateStatus(gameData.currentTime, gameData.currentSteps);
 
-		setTimeout(function() {
+		afterLiked = function() {
 
 			$("#dsp_score").text(maze.gameData.getScore());
 
 			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-			else AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
+			else AMaze.model.inject(getRandomLevelInCat(currentLevel), setGameCanvas);
 			soundWizzard.playMusic();
 			inputLock = mouseAction.inputLock = false; //unlock input device
 
-		}, (soundWizzard.winnerPause == 0 ? 500: soundWizzard.winnerPause)); // must larger than stepTime
+		};
+
+               likedMazeDialog.dialog("open"); 
 	}
 
 	soundWizzard.playStep();
@@ -683,25 +685,42 @@ function getRandomInt(min, max) {
 //numerical order, which is true for now.
 var getRandomLevelInCat = function (catId){
 	console.log("cat id is " + catId);
+        currentLevel = catId;
 	var mazes = remoteDB.HTTPGet('/mazes/category/' + catId);
 	var len = mazes.mazes.length;
 	var min = mazes.mazes[0].mazeno;
 	var max = mazes.mazes[len -1].mazeno;
 	var rand = getRandomInt(min,max);
-	var rand2 = getRandomInt(0,1);
-	if(rand2){
-		console.log("hand written");
-		remoteDB.getMazeByMazeno(rand);
-	}else{
-		console.log("procedurally generated");
-		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
-		var rand3 = getRandomInt(0, algos.length - 1);
-      	var req = '{"algorithm" : "' + algos[rand3].gen + '"}';
-      	var gen = remoteDB.HTTPPostGen('/maze/gen', req);
-      	this.currentMaze = gen.maze;
-      	currentMazeFile = gen.displayName;
-      	AMaze.model.inject(this.currentMaze, setGameCanvas);
+	var rand2 = Math.random();
+	if(rand2+getBiasEffect() > 0.5) {
+            console.log("hand written");
+            levelIsHand = true;
+            remoteDB.getMazeByMazeno(rand);
 	}
+        else {
+            console.log("procedurally generated");
+            levelIsHand = false;
+            var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+            var rand3 = getRandomInt(0, algos.length - 1);
+            var req = '{"algorithm" : "' + algos[rand3].gen + '"}';
+            var gen = remoteDB.HTTPPostGen('/maze/gen', req);
+            this.currentMaze = gen.maze;
+            currentMazeFile = gen.displayName;
+            AMaze.model.inject(this.currentMaze, setGameCanvas);
+	}
+},
+
+levelIsHand = true,//should initially set this when we don't always start with the first level
+
+//when bias +, more likely to get hand drawn mazes
+//when bias -, more likely to get randomly generated mazes
+//bias can extend infinitely in both +/-, but has most effect between -300,300
+randomBias = 0,
+
+//bias effect is added to cutoff for random choice
+//max effect of -0.5,0.5
+getBiasEffect = function() {
+    return 1/Math.PI * Math.atan(randomBias/100);
 };
 
 
@@ -865,8 +884,17 @@ $(function() {
                 dialogClass: 'no-close',
                 modal: true,
                 buttons: {
-                    Yes: function() {},
-                    No: function() {}
+                    //randomBias + for liking hand crafted, - for procedural
+                    Yes: function() {
+                        randomBias+=100*(levelIsHand*2-1);
+                        console.log(randomBias);
+                        afterLiked();
+                    },
+                    No: function() {
+                        randomBias-=100*(levelIsHand*2-1);
+                        console.log(randomBias);
+                        afterLiked();
+                    }
                 }
         }),
 	form = loginDialog.find( "form" ).on( "submit", function( event ) {
