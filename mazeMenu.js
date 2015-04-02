@@ -989,6 +989,4 @@ if (typeof exports !== 'undefined'){
 	module.exports.setGameCanvas = setGameCanvas;
 	module.exports.gameData = gameData;
 	module.exports.soundWizzard = soundWizzard;
-	module.exports.buildCatsAPIC = buildCatsAPIC;
-	module.exports.buildCats = buildCats;
 }
