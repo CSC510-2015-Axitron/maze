@@ -653,90 +653,55 @@ function setGameCanvas(loaded) {
 var buildUserList = function(){
 	//console.log("remote id is " + remoteDB.getUserId());
 	var usrMazes = remoteDB.HTTPGet('/mazes/user/' + remoteDB.getUserId());
-	//console.log(usrMazes.mazes);
+	console.log(usrMazes.mazes);
 	for(var j = 0; j < usrMazes.mazes.length; j++){
         if($('#' + usrMazes.mazes[j].mazeno).length){
         	//donothing
         }else{
         	var x = $('<li id=' + usrMazes.mazes[j].mazeno + '><a href="#">' + usrMazes.mazes[j].displayName + '</a></li>');
-        	sub = $('#sub6');
+        	sub = $('#sub5');
         	sub.append(x);
         }
     }
 }
 
-var updateCats = function(){
-	if(remoteDB.getIsLogon()){
-		buildUserList();
-		//update checkmarks
-		var playedList = remoteDB.HTTPGet('/played/' + remoteDB.getUserId());
-		var playedNums = [];
-		for(var k = 0; k < playedList.played.length; k++){
-			playedNums[k] = playedList.played[k].mazeno;
-		}
-		var sub
-	    var count = 0;
-	    for(var i = 0; i < categories.length; i++){  
-	        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
-	        count++;
-	        for(var j = 0; j < mazeInCat.mazes.length; j++){
-	            var x;
-	            if(playedNums.indexOf(mazeInCat.mazes[j].mazeno) != -1){
-	            	var tar = $('#' + mazeInCat.mazes[j].mazeno);
-	            	tar.html('<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '  &#10004;</a></li>');
-	            }
-	        }
-	    };
-	}
+
+
+/**
+ * Returns a random integer between min (inclusive) and max (inclusive)
+ * Using Math.round() will give you a non-uniform distribution!
+ * Pilfered from this stack overflow post:  
+ * http://stackoverflow.com/questions/1527803/generating-random-numbers-in-javascript-in-a-specific-range
+ */
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 
-var buildAlgoList = function(){
-	var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
-	//console.log(algos);
-	var finAppend = "";
-	for(var i = 0; i < algos.length; i++){
-	    var x = '<li id=algoNum' + i + '><a href="#">' + algos[i].displayName+ '</a></li>';
-	    finAppend += x;
+//This function assumes that the numbers
+//of the mazes in each category are actually in 
+//numerical order, which is true for now.
+var getRandomLevelInCat = function (catId){
+	console.log("cat id is " + catId);
+	var mazes = remoteDB.HTTPGet('/mazes/category/' + catId);
+	var len = mazes.mazes.length;
+	var min = mazes.mazes[0].mazeno;
+	var max = mazes.mazes[len -1].mazeno;
+	var rand = getRandomInt(min,max);
+	var rand2 = getRandomInt(0,1);
+	if(rand2){
+		console.log("hand written");
+		remoteDB.getMazeByMazeno(rand);
+	}else{
+		console.log("procedurally generated");
+		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
+		var rand3 = getRandomInt(0, algos.length - 1);
+      	var req = '{"algorithm" : "' + algos[rand3].gen + '"}';
+      	var gen = remoteDB.HTTPPostGen('/maze/gen', req);
+      	this.currentMaze = gen.maze;
+      	currentMazeFile = gen.displayName;
+      	AMaze.model.inject(this.currentMaze, setGameCanvas);
 	}
-	sub = $('#sub5');
-	sub.append(finAppend);
-};
-
-var buildCats = function (){
-    var sub;
-    var count = 0;
-    var finAppend = "";
-    for(var i = 0; i < categories.length; i++){  
-        var mazeInCat = remoteDB.HTTPGet('/mazes/category/' + categories[i].id);
-        count++;
-        for(var j = 0; j < mazeInCat.mazes.length; j++){
-            var x = '<li id=' + mazeInCat.mazes[j].mazeno + '><a href="#">' + mazeInCat.mazes[j].displayName + '</a></li>';
-            finAppend += x;
-            //console.log("count is  " + count);
-        }
-        sub = $('#sub' + (count));
-        sub.append(finAppend);
-        finAppend = "";
-    };
-};
-
-//Uses apiClient to do the same thing as build cats.
-var buildCatsAPIC = function (){
-    var sub
-    var count = 0;
-    for(var i = 0; i < categories.length; i++){  
-        apiClient.getMazesInCategory(categories[i].id, function(resp){
-            //console.log("resp is " + resp);
-            count++;
-            for(var j = 0; j < resp.mazes.length; j++){
-                var x = $('<li id=' + resp.mazes[j].mazeno + '><a href="#">' + resp.mazes[j].displayName + '</a></li>');
-                sub = $('#sub' + (count));
-                sub.append(x);
-                //console.log("count is  " + count);
-            }
-        });
-    };
 };
 
 
@@ -794,28 +759,10 @@ $(function() {
 				loginPasswordField.addClass( "ui-state-error" );
 	},
 	load = function(){
-		//console.log('we are here');
-		//var numMazes = remoteDB.HTTPGet('/mazes');
-		//console.log(numMazes);
-		//if(mazeNum.val() > numMazes - 1){
-			//if the maze number doesn't exist just close
-			//$('#load-form').dialog('close');
-		//}
 		if(!remoteDB.getMazeByMazeno(mazeNum.val())){
 			console.log('failed to load');
 		}
-		$("#dsp_level").text(currentMazeFile);
-		var clickEvent = {
-      			item: "Hand Written",
-      			name: currentMazeFile
-      		}
-  		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
-  			if(err){
-  				console.log("error occurred: " + err);
-  			}else{
-  				console.log("successful: " + res);
-  			}
-  		})
+		$("#dsp_level").text(currentMazeFile);		
 		$('#load-form').dialog('close');
 	},
 	register = function() {
@@ -959,11 +906,6 @@ $(function() {
 		}
 	});
 
-	$("#menu_goto").click(function() {
-		console.log("goto button is pressed.");
-	});
-
-
 	//Side menu related stuff starts here
 
 	$('#menu_level').sidr({
@@ -977,63 +919,30 @@ $(function() {
     });
 
     $('#menu_level').click(function(){
-    	updateCats();
+    	if(remoteDB.getIsLogon())
+			buildUserList();
     })
 
-	buildCats();
-	buildAlgoList();
     $('.sub-menu-sidr').hide();
 
     $("#sidr li:has(ul)").click(function(){
-        $("ul",this).toggle('fast');
+        var val = $('ul', this).attr('id');
+        if(val == 'sub5'){
+        	//Do nothing
+        	$("ul",this).toggle('fast');
+        }else{
+        	getRandomLevelInCat(val);
+        	$.sidr('toggle');
+        }
+        
     });
 
     $("ul.sub-menu-sidr").on('click', 'li', function(){
+      console.log('user maze click');
       var curId = $(this).attr('id');
-      if(curId !== undefined){
-      	var sString = curId.slice(0,7)
-      	if(sString == "algoNum"){
-      		var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
-      		var req = '{"algorithm" : "' + algos[curId.slice(7)].gen + '"}';
-      		var gen = remoteDB.HTTPPostGen('/maze/gen', req);
-      		this.currentLevel = curId.slice[7];
-      		this.currentMaze = gen.maze;
-      		currentMazeFile = gen.displayName;
-      		var clickEvent = {
-      			item: "Procedurally Generated",
-      			name: gen.displayName
-      		}
-      		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
-      			if(err){
-      				console.log("error occurred: " + err);
-      			}else{
-      				console.log("successful: " + res);
-      			}
-      		})
-
-      		AMaze.model.inject(this.currentMaze, setGameCanvas);
-      	}else{
-	      	//this.currentLevel = curId;
-	      	//var obj = remoteDB.HTTPGet("/maze/"+(this.currMazeID=curId).toString());
-			//this.currentMaze = JSON.parse(obj.mazeJSON);
-			//AMaze.model.inject(this.currentMaze, setGameCanvas);
-
-			remoteDB.getMazeByMazeno(curId);
-			var clickEvent = {
-      			item: "Hand Written",
-      			name: currentMazeFile
-      		}
-      		if (KeenOn) client.addEvent("level_select", clickEvent, function(err,res){
-      			if(err){
-      				console.log("error occurred: " + err);
-      			}else{
-      				console.log("successful: " + res);
-      			}
-      		})
-			$("#dsp_level").text(currentMazeFile);
-		}
-		$.sidr('toggle');
-      }
+      remoteDB.getMazeByMazeno(curId);
+      $("#dsp_level").text(currentMazeFile);
+      $.sidr('toggle');
     });
 	//Side menu related stuff ends here
 	
