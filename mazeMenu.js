@@ -686,7 +686,6 @@ function getRandomInt(min, max) {
 //of the mazes in each category are actually in 
 //numerical order, which is true for now.
 var getRandomLevelInCat = function (catId){
-	console.log("cat id is " + catId);
         currentLevel = catId;
 	var mazes = remoteDB.HTTPGet('/mazes/category/' + catId);
 	var len = mazes.mazes.length;
@@ -695,19 +694,19 @@ var getRandomLevelInCat = function (catId){
 	var rand = getRandomInt(min,max);
 	var rand2 = Math.random();
 	if(rand2+getBiasEffect() > 0.5) {
-            console.log("hand written");
+            console.log("getting maze "+rand);
             levelIsHand = true;
             remoteDB.getMazeByMazeno(rand);
 	}
         else {
-            console.log("procedurally generated");
             levelIsHand = false;
             var algos = remoteDB.HTTPGet('/maze/gen/algorithms');
             var rand3 = getRandomInt(0, algos.length - 1);
-            var req = '{"algorithm" : "' + algos[rand3].gen + '"}';
+            var req = JSON.stringify({"algorithm":algos[rand3].gen,"seed":100000*catId + Math.random()*1000});
             var gen = remoteDB.HTTPPostGen('/maze/gen', req);
             this.currentMaze = gen.maze;
             currentMazeFile = gen.displayName;
+            console.log("getting maze from "+algos[rand3].gen);
             AMaze.model.inject(this.currentMaze, setGameCanvas);
 	}
 },
@@ -966,6 +965,7 @@ $(function() {
         	//Do nothing
         	$("ul",this).toggle('fast');
         }else{
+                currentCatID = val;
         	getRandomLevelInCat(val);
         	$.sidr('toggle');
         }
