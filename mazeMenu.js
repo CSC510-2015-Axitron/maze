@@ -8,6 +8,7 @@
 currentMazeFile = '';
 currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
+currentCatID = 0;
 
 
 //Keen stuff.
@@ -55,7 +56,8 @@ var categories =[
         "id": 301,
         "name": "Huge Mazes (30+)"
     }
-];
+],
+likedMazeDialog;
 
 var localDB = false; //change to false to access remoteDB
 var inputLock = false; //input device lock
@@ -131,7 +133,7 @@ function updateStatus(maze) {
 			$("#dsp_score").text(maze.gameData.getScore());
 
 			if (localDB) AMaze.model.load(currentMazeFile = getNextMaze(), setGameCanvas);
-			else AMaze.model.inject(getRandomLevelInCat(currentLevel), setGameCanvas);
+			else getRandomLevelInCat(currentCatID);
 			soundWizzard.playMusic();
 			inputLock = mouseAction.inputLock = false; //unlock input device
 
@@ -725,6 +727,7 @@ getBiasEffect = function() {
 
 
 $(function() {
+        currentCatID = 1;//bad
 	$.cookie.json = true;
 	$('#user_info').hide();
 	$('#menu_designer').hide();
@@ -879,6 +882,12 @@ $(function() {
 			}
 		}
 	}),
+	form = loginDialog.find( "form" ).on( "submit", function( event ) {
+		event.preventDefault();
+		login();
+	});
+
+
         likedMazeDialog = $('#liked-maze-dialog').dialog({
                 autoOpen: false,
                 dialogClass: 'no-close',
@@ -886,21 +895,19 @@ $(function() {
                 buttons: {
                     //randomBias + for liking hand crafted, - for procedural
                     Yes: function() {
-                        randomBias+=100*(levelIsHand*2-1);
+                        randomBias+=10*(levelIsHand*2-1);
                         console.log(randomBias);
+                        likedMazeDialog.dialog("close");
                         afterLiked();
                     },
                     No: function() {
-                        randomBias-=100*(levelIsHand*2-1);
+                        randomBias-=10*(levelIsHand*2-1);
                         console.log(randomBias);
+                        likedMazeDialog.dialog("close");
                         afterLiked();
                     }
                 }
-        }),
-	form = loginDialog.find( "form" ).on( "submit", function( event ) {
-		event.preventDefault();
-		login();
-	});
+        });
 
 	soundWizzard.initiate();
 	soundWizzard.playMusic();
