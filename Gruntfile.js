@@ -19,6 +19,7 @@ module.exports = function(grunt) {
             'public/build/mazeRender.js': 'mazeRender.js',
             'public/build/remoteDB.js': 'remoteDB.js',
             'public/build/trailModel.js': 'trailModel.js',
+            'public/build/pie.js': 'pie.js',
             'public/server.js': 'server.js'
         }
       }
