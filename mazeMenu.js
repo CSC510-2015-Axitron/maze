@@ -9,6 +9,7 @@ currentMazeFile = '';
 currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
 currentCatID = 0;
+FPS_counter = 0; //used by keyboard detection in CanvasEngine
 
 
 //Keen stuff.
@@ -627,23 +628,26 @@ function setGameCanvas(loaded) {
 				theUserData.resetTimer();
 				modelTest.userData = theUserData;
 				modelTest.gameData = gameData; //make gameData testable
-				resetStatus();
+				resetStatus();this.lastTimeStamp = 0;
 
-				canvas.Input.keyUp(Input.Up, function(e) {
-					if (!inputLock && modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
-				});
+				//canvas.Input.keyUp(Input.Up, function(e) {
+				//	if (!inputLock && modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+				//});
 
-				canvas.Input.keyUp(Input.Bottom, function(e) {
-					if (!inputLock && modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
-				});
+				//canvas.Input.keyUp(Input.Bottom, function(e) {
+				//	if (!inputLock && modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+				//});
 
-				canvas.Input.keyUp(Input.Left, function(e) {
-					if (!inputLock && modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
-				});
+				//canvas.Input.keyUp(Input.Left, function(e) {
+				//	if (!inputLock && modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+				//});
 
-				canvas.Input.keyUp(Input.Right, function(e) {
-					if (!inputLock && modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
-				});
+				//canvas.Input.keyUp(Input.Right, function(e) {
+				//	if (!inputLock && modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+				//});
+
+				canvas.Input.keyDown([Input.Left, Input.Right, Input.Up, Input.Bottom]);
+				canvas.Input.keyUp([Input.Left, Input.Right, Input.Up, Input.Bottom]);
 			},
 			render: function(stage) {
 				this.mazeRenderer.refresh();
@@ -651,6 +655,27 @@ function setGameCanvas(loaded) {
 
 				//display time
 				modelTest.userData.displayMinSec();
+				++FPS_counter;
+				if (FPS_counter > 20) { //here 300 is the step time in AMaze.renderer, in order to sync with knight movements
+
+					FPS_counter = 0; console.log("loop");
+
+					if (canvas.Input.isPressed(Input.Up)) {console.log("up");
+						if (!inputLock && modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					}
+
+					else if (canvas.Input.isPressed(Input.Bottom)) {console.log("dwn");
+						if (!inputLock && modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					}
+
+					else if (canvas.Input.isPressed(Input.Left)) {console.log("left");
+						if (!inputLock && modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					}
+
+					else if (canvas.Input.isPressed(Input.Right)) {console.log("right");
+						if (!inputLock && modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
+					}
+				}
 			}
 		});
 		canvas.ready().Scene.call("MyScene");
@@ -962,11 +987,11 @@ $(function() {
 		AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
 	}
 
-	$(window).on('keydown', function(e) {
-		if([32,37,38,39,40].indexOf(e.keyCode) > -1) {
-			e.preventDefault();
-		}
-	}).scrollTop(0).scrollLeft(0);
+	//$(window).on('keydown', function(e) {
+	//	if([32,37,38,39,40].indexOf(e.keyCode) > -1) {
+	//		e.preventDefault();
+	//	}
+	//}).scrollTop(0).scrollLeft(0);
 
 	//restart level
 	$("#menu_new").click(function() {
