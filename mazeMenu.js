@@ -349,9 +349,9 @@ var mouseWorkEngine = function(canvas) {
 	this.inputLock = false; //input device lock
 	var theMazeModel;
 	var threshold = 8; // threshold size (px), lower for higher sensitivity & higher errors!
-	var interval = 500; //shortest movement interval (ms)!
-	var interval_max = 1000; //max movement interval
-	var accelerator = 3; //mouse accelerator
+	var interval = 300; //shortest movement interval (ms)!
+	var interval_max = 800; //max movement interval
+	var accelerator = 2; //mouse accelerator
 
 	var mouseDownHook = false, mouseDblClickHook = false, handler;
 	var lastX = -1, lastY = -1, lastMove = 0, lastTime = 0, currX, currY, offsetX, offsetY;
@@ -361,7 +361,7 @@ var mouseWorkEngine = function(canvas) {
 	canvas.addEventListener("mousedown", function(e) {canvas_mouse_down(e);});
 	canvas.addEventListener("mousemove", function(e) {canvas_mouse_move(e);});
 	canvas.addEventListener("mouseup", function(e) {canvas_mouse_up(e);});
-	//canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
+	canvas.addEventListener("mouseout", canvas_mouse_out);  //commented out to keep mouse focused
 
 	this.setMazeModel = function(mazeModel) {
 		theMazeModel = mazeModel;
@@ -457,7 +457,7 @@ var mouseWorkEngine = function(canvas) {
 	function canvas_mouse_out(e) {
 		//console.log("out");
 		mouseDownHook = false;
-		cleanInterval(handler);
+		clearInterval(handler);
 		handler = 0;
 		lastTime = 0;
 		lastMove = 0;
