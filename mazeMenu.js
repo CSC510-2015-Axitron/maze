@@ -9,6 +9,7 @@ currentMazeFile = '';
 currentLevel = 0; //small, medium, large, huge, etc...
 currentMaze = -1;  //the order of maze in which they appear in the directory
 currentCatID = 0;
+var theGameCanvas; // Use one variable to prevent overloading
 var eventTracker = 0; //event tracker for keyboard & renderer event!
 var lastKeyDn; 
 var FPS_count = 0;
@@ -609,7 +610,7 @@ function setGameCanvas(loaded) {
 					'cellSize':[64,64]
 				};
 
-				this.mazeRenderer = new AMaze.render.MazeRenderer({
+				theGameCanvas = new AMaze.render.MazeRenderer({
 					'bgcanvas':$('#bgcanvas')[0],
 					'canvasEngine':canvas,
 					'scene':this,
@@ -619,9 +620,9 @@ function setGameCanvas(loaded) {
 				});
 
 				// comment out to disable trail
-				this.mazeRenderer.createTrailModel();
+				theGameCanvas.createTrailModel();
 
-				this.mazeRenderer.drawMaze();
+				theGameCanvas.drawMaze();
 
 				//set mouse action
 				mouseAction.setMazeModel(modelTest);
@@ -651,6 +652,11 @@ function setGameCanvas(loaded) {
 				clearInterval(eventTracker);
 				eventTracker = setInterval(function(){
 
+					theGameCanvas.refresh();
+
+					//display time
+					modelTest.userData.displayMinSec();
+
 					if (lastKeyDn != 0) {
 						if ((canvas.Input.isPressed(Input.Up) && lastKeyDn == Input.Up) ||
 							(canvas.Input.isPressed(Input.Bottom) && lastKeyDn == Input.Bottom) ||
@@ -665,25 +671,25 @@ function setGameCanvas(loaded) {
 					}
 					
 					if (lastKeyDn != 0 && FPS_count < 15){} //only repeat keypress for every 15*20 ms
-					else if (canvas.Input.isPressed(Input.Up)) {console.log("up");console.log(Input.Up)
+					else if (canvas.Input.isPressed(Input.Up)) {
 						if (!inputLock && modelTest.movePlayer(AMaze.model.N_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 						lastKeyDn=Input.Up;
 						FPS_count = 0;
 					}
 
-					else if (canvas.Input.isPressed(Input.Bottom)) {console.log("dwn");
+					else if (canvas.Input.isPressed(Input.Bottom)) {
 						if (!inputLock && modelTest.movePlayer(AMaze.model.S_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 						lastKeyDn=Input.Bottom;
 						FPS_count = 0;
 					}
 
-					else if (canvas.Input.isPressed(Input.Left)) {console.log("left");
+					else if (canvas.Input.isPressed(Input.Left)) {
 						if (!inputLock && modelTest.movePlayer(AMaze.model.W_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 						lastKeyDn=Input.Left;
 						FPS_count = 0;
 					}
 
-					else if (canvas.Input.isPressed(Input.Right)) {console.log("right");
+					else if (canvas.Input.isPressed(Input.Right)) {
 						if (!inputLock && modelTest.movePlayer(AMaze.model.E_CONST)) updateStatus(modelTest); else soundWizzard.playObstacle();
 						lastKeyDn=Input.Right;
 						FPS_count = 0;
@@ -695,11 +701,11 @@ function setGameCanvas(loaded) {
 				canvas.Input.keyUp([Input.Left, Input.Right, Input.Up, Input.Bottom]);
 			},
 			render: function(stage) {
-				this.mazeRenderer.refresh();
+				//this.mazeRenderer.refresh();
 				stage.refresh();
 
 				//display time
-				modelTest.userData.displayMinSec();
+				//modelTest.userData.displayMinSec();
 				
 			}
 		});
