@@ -704,10 +704,10 @@ var getRandomLevelInCat = function (catId){
             var rand3 = getRandomInt(0, algos.length - 1);
             var req = JSON.stringify({"algorithm":algos[rand3].gen,"seed":10000*catId + Math.random()*10000});
             var gen = remoteDB.HTTPPostGen('/maze/gen', req);
-            this.currentMaze = gen.maze;
+            remoteDB.currMazeObj = gen.maze;console.log("haha");
             currentMazeFile = "Size: "+gen.maze.width+"x"+gen.maze.height;
             console.log("getting maze from "+algos[rand3].gen);
-            AMaze.model.inject(this.currentMaze, setGameCanvas);
+            AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas);
 	}
 },
 
