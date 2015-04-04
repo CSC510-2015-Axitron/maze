@@ -699,15 +699,15 @@ function setGameCanvas(loaded) {
 
 				canvas.Input.keyDown([Input.Left, Input.Right, Input.Up, Input.Bottom]);
 				canvas.Input.keyUp([Input.Left, Input.Right, Input.Up, Input.Bottom]);
-			},
-			render: function(stage) {
+			}
+			//render: function(stage) {
 				//this.mazeRenderer.refresh();
-				stage.refresh();
+			//	stage.refresh();
 
 				//display time
 				//modelTest.userData.displayMinSec();
 				
-			}
+			//}
 		});
 		canvas.ready().Scene.call("MyScene");
 };
@@ -1116,4 +1116,5 @@ if (typeof exports !== 'undefined'){
 	module.exports.setGameCanvas = setGameCanvas;
 	module.exports.gameData = gameData;
 	module.exports.soundWizzard = soundWizzard;
+	module.exports.theGameCanvas = theGameCanvas;
 }
