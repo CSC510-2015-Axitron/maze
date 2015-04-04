@@ -83,7 +83,7 @@ var gameData = new function() {
 
 	// score formula
 	this.getScore = function() {
-		var a = Math.round(50 * (1 + currentMaze * 0.6) - this.currentSteps - this.currentTime * 3);
+		var a = Math.round(50 * (1 + currentLevel * 2) - this.currentSteps - this.currentTime * 3);
 		this.totalScore += ((a < 0)? 0:a);
 		return this.totalScore;
 	}
@@ -1015,7 +1015,9 @@ $(function() {
 	else
 	{
 		remoteDB.initiate();
-		AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
+		//AMaze.model.inject(remoteDB.getNextMaze(), setGameCanvas);
+		remoteDB.getNextMaze(); //set up first maze anyway,
+		getRandomLevelInCat(remoteDB.categories[currentLevel].id); //enter first level maze
 	}
 
 	$(window).on('keydown', function(e) {
