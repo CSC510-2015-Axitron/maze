@@ -156,6 +156,10 @@ $.ajax = function(obj) {
 		{
 			responseText = '{"mazeno": 19,"displayName": "Dungeon of Smallness","userForMaze": null,"height": 3,"width": 2,"mazeJSON": "{\\\"width\\\":2,\\\"height\\\":3,\\\"start\\\":[0,1],\\\"end\\\":[1,2],\\\"board\\\":[[6,5,6],[12,1,8]]}","category": 1}';
 		}
+		else if (obj.url == url+"/maze/gen/algorithms")
+		{
+			responseText = '[{"gen": "recursivebacktrackingsimplex","displayName": "Coherent Recursive Backtracking"}]'
+		}
 		else responseText = '{"response": "none"}';
 
 		var httpObj = {responseText: responseText};
@@ -413,10 +417,15 @@ remoteDB = {
 
 	// get maze by maze no and start the level, will not check maze availability, assume chosen from predefined mazeno array
 	getMazeByMazeno: function(mazeno) {
-		maze.userData.TimerOff(); //stop the timer
-		var obj = this.HTTPGet("/maze/"+(this.currMazeID=mazeno).toString());
-		this.currMazeObj = JSON.parse(obj.mazeJSON);
-		AMaze.model.inject(remoteDB.getCurrentMaze(), setGameCanvas);
+		var obj = this.HTTPGet("/maze/"+(mazeno).toString());
+		if (obj.response != "maze not found") {
+			this.currMazeID = mazeno;
+			this.currMazeObj = JSON.parse(obj.mazeJSON);
+			currentMazeFile = "Size: "+this.currMazeObj.width+"x"+this.currMazeObj.height; //global parameters!
+			//AMaze.model.inject(remoteDB.currMazeObj, setGameCanvas); //test purpose, do not load setGameCanvas
+			return true;
+		}
+		else return false;
 	},
 
 	getCategoryByUserID: function(id) {
@@ -491,8 +500,8 @@ describe('Maze menu test', function() {
 		menu.resetStatus();
 	});
 	describe('Load maze menu', function() {
-		it ('should load global parameters', function() {
-			assert.equal(currentLevel, 0); 
+		it ('should load first level maze', function() {
+			assert.equal(currentLevel, 1); 
 		});
 	});
 	describe('Maze directory', function() {
@@ -514,10 +523,10 @@ describe('Maze menu test', function() {
 	});
 	describe('Execute jQuery callback function', function() {
 
-		it ('maze no. should be 1', function() {
+		it ('maze no. should be 0 because of randomized maze loader', function() {
 
 			currentMazeFile =  menu.getNextMaze();
-			assert.equal(currentMaze, 1);
+			assert.equal(currentMaze, 0);
 		});
 
 		it ('should load second maze file', function() {
@@ -527,7 +536,7 @@ describe('Maze menu test', function() {
 		});
 
 		it ('proceeding to next level should load third maze file', function() {
-
+			currentMaze = 1;
 			currentMazeFile = menu.getNextMaze();
 
 			var mazeKeyArray = Object.keys(mazeDirectory);
