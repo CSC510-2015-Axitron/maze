@@ -27,8 +27,35 @@ Hit login and enter an old email (dummy1@dum.my/whatever)
 Hit register
 Should get message for email already in use
 
+Liked dialog:
+Play the first level
+Should get a dialog that asks whether you liked it or not
+Click one of the options
+Should load another level
+
 Level select:
-Maybe don't do this because we're changing it?
+Hit the levels button, should open up left hand side menu
+Select Large levels
+Should load a new level of size >20x20
+
+Load:
+Hit load, type 20
+Should get 3x3 maze
+Hit load again, type 21
+Should get 10x10 maze
+Hit load again, type 19
+Should get 2x3 maze
+
+Restart:
+Sit on maze for a while, 20s or more
+Hit restart, should get confirmation message, hit ok
+Time should reset to 00:00
+Move to somewhere else on the maze
+Hit restart, should get confirmation message, hit ok
+Should move back to start and time should reset
+Move to somewhere else on the maze
+Hit restart, should get confirmation message, hit cancel
+Nothing should happen
 
 Designer:
 Base:
@@ -59,3 +86,38 @@ Clicking overwrite should close the dialog
 Clicking load should give the list of mazes again, select a different maze
 Click load again and load the overwritten maze
 Changes should be reflected
+
+Setsize:
+Get to designer
+Change setsize parameters to 11x11
+Hit set size
+Maze should resize to be 11x11 cells, JSON display should update to match
+
+Setsize2:
+Get to designer
+Change setsize parameters to 1x1
+Hit setsize
+Maze should resize to be 5x5 cells, etc
+
+Start:
+Double click on a node with start selected in tool
+Start position should change to node clicked, green highlight, s
+
+End:
+Double click on a node with end selected in tool
+End position should change to node clicked, green highlight, e
+
+JSON display:
+Valid:
+Get to designer
+Make maze (recommend small and simple)
+Change start position to valid but different position in the text area below, press enter
+Maze should update to reflect change
+Change end position to valid but different position in the text area below, press enter
+Maze should update to reflect change
+
+Invalid:
+Get to designer
+Make maze (recommend small and simple)
+Change start position to invalid but different position (out of bounds), press enter
+Text area should change back after moving mouse out, maze not update
