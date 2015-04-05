@@ -964,7 +964,7 @@ $(function() {
 			      			item: levelType,
       						liked: "Yes"
       					}
-      					client.addEvent("sentiment", clickEvent, function(err,res){
+      					if (KeenOn) client.addEvent("sentiment", clickEvent, function(err,res){
       						if(err){
       							console.log("error occurred: " + err);
       						}else{
@@ -987,7 +987,7 @@ $(function() {
 			      			item: levelType,
       						liked: "No"
       					}
-      					client.addEvent("sentiment", clickEvent, function(err,res){
+      					if (KeenOn) client.addEvent("sentiment", clickEvent, function(err,res){
       						if(err){
       							console.log("error occurred: " + err);
       						}else{

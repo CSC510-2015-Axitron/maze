@@ -315,6 +315,20 @@ remoteDB = {
 			error: function(data) {func(JSON.parse(data.responseText));}
 		});
 	},
+	//Special use for case where data should not be stringified.
+	HTTPPostGen: function(path, datas) {
+		return JSON.parse($.ajax({
+			type: "POST",
+			data: datas,
+			url: this.url+path,
+			async: false,
+			headers: {
+				"authorization":remoteDB.token,
+				"content-type":"application/json"
+			}
+		}).responseText);
+
+	},
 	HTTPPost: function(path, datas) {
 		return JSON.parse($.ajax({
 			type: "POST",
@@ -774,6 +788,27 @@ describe('Maze menu test', function() {
 				menu.soundWizzard.pauseMusic();
 				assert.equal(buzz.status == '',true);
 			});
+
+			it ('play intro should produce no error', function() {
+				menu.soundWizzard.playIntro();
+				assert.ok("script runs", "no error is found");
+			});
+
+			it ('play finale should produce no error', function() {
+				menu.soundWizzard.playFinale();
+				assert.ok("script runs", "no error is found");
+			});
+
+			it ('play obstacle sound effects should produce no error', function() {
+				menu.soundWizzard.playObstacle();
+				assert.ok("script runs", "no error is found");
+			});
+
+			it ('should be able to initiate music if it is inactive', function() {
+				menu.soundWizzard.initiate();
+				menu.soundWizzard.musicOn();
+				assert.equal(buzz.status == 'paused',false);
+			});
 		});
 
 		describe('when browser supports sound', function() {
@@ -792,7 +827,51 @@ describe('Maze menu test', function() {
 				menu.soundWizzard.pauseMusic();
 				assert.equal(buzz.status == 'paused',true);
 			});
+
+			it ('should be able to turn on music', function() {
+				menu.soundWizzard.playMusic();
+				menu.soundWizzard.musicOn();
+				assert.equal(buzz.status == 'paused',false);
+			});
+
+			it ('should be able to turn off music', function() {
+				menu.soundWizzard.playMusic();
+				menu.soundWizzard.musicOff();
+				assert.equal(buzz.status == 'paused', false);
+			});
+
+			it ('should be able to play intro', function() {
+				menu.soundWizzard.playIntro();
+				assert.ok("script runs", "no error is found");
+			});
+
+			it ('should be able to play finale', function() {
+				menu.soundWizzard.playFinale();
+				assert.ok("script runs", "no error is found");
+			});
+
+			it ('should be able to play obstacle sound effects', function() {
+				menu.soundWizzard.playObstacle();
+				assert.ok("script runs", "no error is found");
+			});
+
 		});
+	});
+
+	describe('Keen plugin test', function(){
+		describe('when keep plugin is not found', function() {
+			it('should skip keen plugin related features', function() {
+				var new_menu = require('./../mazeMenu.js');
+				assert.ok("no error fund", "no error is found");
+			})
+		})
+		describe('when keep plugin is found', function() {
+			it('should run keen plugin related features', function() {
+				Keen = {addEvent: function(a, b, func){func(true,'');}}
+				var new_menu = require('./../mazeMenu.js');
+				assert.ok("script runs", "no error is found");
+			})
+		})
 	});
 
 
