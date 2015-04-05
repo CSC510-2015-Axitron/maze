@@ -507,15 +507,15 @@ function setGameCanvas(loaded) {
 			ready: function(stage) {
 
 				var docWidth = $(document).width(), windowHeight = $(window).height(), windowWidth = $(window).width();
-				if(false)
-				{
+				//if(false)
+				//{
 
-					$('#bgcanvas')[0].width = docWidth*0.9;
-					$('#bgcanvas')[0].height = windowHeight*0.8;
+				//	$('#bgcanvas')[0].width = docWidth*0.9;
+				//	$('#bgcanvas')[0].height = windowHeight*0.8;
 
-					$('#canvas_id')[0].width = docWidth*0.9;
-					$('#canvas_id')[0].height = windowHeight*0.8;
-				}
+				//	$('#canvas_id')[0].width = docWidth*0.9;
+				//	$('#canvas_id')[0].height = windowHeight*0.8;
+				//}
 
 				$('#bgcanvas').css('left', windowWidth/2-$('#bgcanvas')[0].width/2);
 				$('#canvas_id').css('left', windowWidth/2-$('#canvas_id')[0].width/2);
